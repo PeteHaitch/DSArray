@@ -1,0 +1,157 @@
+#' @importFrom methods new setMethod
+#' @importFrom data.table := .GRP .I key setkey setkeyv
+setMethod(".sparsify", "data.table",
+          function(x, ...) {
+            # NOTE: Will otherwise get errors if data have zero rows.
+            if (nrow(x)) {
+              # Add an index for the original row number
+              if (any(grepl(".my", colnames(x)))) {
+                stop("'x' must not have colnames beginning with '.my'")
+              }
+              x[, .myI := .I]
+              # Set the key (kind of like hashing the rows of the data.table
+              # since we use all columns).
+              my_key <- grep(".myI", colnames(x), value = TRUE, invert = TRUE)
+              my_key <- grep("rn", my_key, value = TRUE, invert = TRUE)
+              setkeyv(x, cols = my_key)
+
+              # Create the key and val
+              x[, .myKey := .GRP, by = key(x)]
+              key <- setkey(x[, list(.myI, .myKey)], .myI)[, .myKey]
+              val <- unique(x)[, c(".myI", ".myKey") := NULL]
+            } else {
+              val <- x
+              key <- matrix()
+            }
+            # Fix the dimnames
+            if ("rn" %in% colnames(val)) {
+              rn <- val[, rn]
+              val <- as.matrix(val[, rn := NULL])
+              names(key) <- rn[key]
+            } else {
+              val <- as.matrix(val)
+            }
+            # NOTE: Need to NULL-ify rownames differently depending on colnames,
+            #       otherwise some downstream identical() checks can fail.
+            # TODO: Check the logic of this conditional
+            # if (identical(colnames(val), paste0("V", seq_len(ncol(val))))) {
+            if (any(grepl(".MY", colnames(x)))) {
+              dimnames(val) <- NULL
+            } else {
+              rownames(val) <- NULL
+            }
+            # Handle the NA-row
+            NA_idx <- which(rowSums(is.na(val)) == ncol(val))
+            if (length(NA_idx)) {
+              # Take care of NA rows
+              stopifnot(length(NA_idx) == 1L)
+              # Update val element by dropping NA row
+              val <- val[-NA_idx, , drop = FALSE]
+              # Update key element to replace index by NA for NA rows
+              # TODO (longterm): Probably more efficient ways to do this
+              if (!is.null(names(key))) {
+                names(key)[key == NA_idx] <- NA
+              }
+              key[key == NA_idx] <- NA
+              key[!is.na(key) & key > NA_idx] <-
+                key[!is.na(key) & key > NA_idx] - 1L
+            }
+            # Return the result
+            new("DRMatrix", key = as.matrix(key), val = val)
+          }
+)
+# To avoid WARNINGs about "Undefined global functions or variables" in
+# R CMD check caused by '.myI' and '.myKey'
+#' @importFrom utils globalVariables
+globalVariables(c(".myI", ".myKey"))
+
+#' @importFrom data.table as.data.table data.table setnames
+#' @importFrom methods setMethod
+setMethod(".sparsify", "matrix",
+          function(x, ...) {
+            # Convert input to data.table
+            if ("rn" %in% colnames(x)) {
+              stop("'x' must not have a column named 'rn'")
+            }
+            if (is.null(colnames(x))) {
+              cn <- paste0(".MYV", seq_len(ncol(x)))
+            } else {
+              cn <- NULL
+            }
+            x <- as.data.table(x, keep.rownames = !is.null(rownames(x)))
+            if (!is.null(cn)) {
+              if ("rn" %in% colnames(x)) {
+                setnames(x, c("rn", cn))
+              } else if (!identical(colnames(x), character(0))) {
+                setnames(x, cn)
+              }
+            }
+            .sparsify(x)
+          }
+)
+
+#' @importFrom data.table setDT
+#' @importFrom methods setMethod
+setMethod(".sparsify", "data.frame",
+          function(x, ...) {
+            # Convert input to data.table by reference
+            setDT(x)
+            .sparsify(x)
+          }
+)
+
+# TODO: This function is called purely for its side effects. What's the
+#       appropriate return value?
+.validate_DRMatrix_subscript <- function(x, i, j, k) {
+  if (!missing(i) &&
+      ((is.numeric(i) && isTRUE(any(i > nrow(x)))) ||
+       (is.character(i) && isTRUE(any(!i %in% rownames(x)))))) {
+    stop("subscript i out of bounds")
+  }
+  if (!missing(j) &&
+      ((is.numeric(j) && isTRUE(any(j > ncol(x)))) ||
+       (is.character(j) && isTRUE(any(!j %in% colnames(x)))))) {
+    stop("subscript j out of bounds")
+  }
+  if (!missing(k) &&
+      ((is.numeric(k) && isTRUE(any(k > dim(x)[3L]))) ||
+       is.character(k) && isTRUE(any(!k %in% dimnames(x)[[3L]])))) {
+    stop("subscript k out of bounds")
+  }
+  invisible(x)
+}
+
+# TODO: This function is called purely for its side effects. What's the
+#       appropriate return value?
+.validate_DRMatrix_value_dim <- function(value, i, j, k, x) {
+  value_dim <- dim(value)
+  if (missing(i) && missing(j)) {
+    if (!missing(k)) {
+      x_dim <- c(nrow(x), ncol(x), length(k))
+    } else {
+      x_dim <- dim(x)
+    }
+  } else if (missing(i) && !missing(j)) {
+    if (!missing(k)) {
+      x_dim <- c(nrow(x), length(j), length(k))
+    } else {
+      x_dim <- c(nrow(x), length(j), dim(x)[3L])
+    }
+  } else if (!missing(i) && missing(j)) {
+    if (!missing(k)) {
+      x_dim <- c(length(i), ncol(x), length(k))
+    } else {
+      x_dim <- c(length(i), ncol(x), dim(x)[3L])
+    }
+  } else if (!missing(i) && !missing(j)) {
+    if (!missing(k)) {
+      x_dim <- c(length(i), length(j), length(k))
+    } else {
+      x_dim <- c(length(i), length(j), dim(x)[3L])
+    }
+  }
+  if (!identical(x_dim, value_dim)) {
+    stop("number of items to replace is not a multiple of replacement length")
+  }
+  invisible(value)
+}

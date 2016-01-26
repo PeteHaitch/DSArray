@@ -1,0 +1,24 @@
+Package: DRMatrix
+Type: Package
+Title: Compressed Storage of Numeric Matrices With Many Duplicate Rows
+Version: 0.0.9000
+Authors@R: c(person("Peter", "Hickey", role = c("aut", "cre"),
+    email = "peter.hickey@gmail.com"))
+Description: Compressed storage of numeric matrices with many duplicate rows.
+License: MIT + file LICENSE
+URL: https://github.com/PeteHaitch/DRMatrix
+BugReports: https://github.com/PeteHaitch/DRMatrix/issues
+LazyData: TRUE
+Depends:
+    R (>= 2.8.0)
+Imports:
+    BiocGenerics,
+    data.table,
+    methods
+Suggests:
+    knitr,
+    rmarkdown,
+    SummarizedExperiment,
+    testthat
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
