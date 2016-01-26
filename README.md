@@ -10,7 +10,7 @@
 DRMatrix: compressed storage of numeric matrices with many duplicate rows.
 
 DRMatrix provides efficient storage of numeric matrices with many duplicate 
-rows via the DRMatrix (__D__uplicate __R__ow __Matrix__) S4 class. A basic 
+rows via the DRMatrix (**D**uplicate **R**ow **Matrix**) S4 class. A basic 
 matrix-like API is provided for instantiating, subsetting, and 
 combining DRMatrix objects.
 
