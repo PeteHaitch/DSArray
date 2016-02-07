@@ -47,6 +47,10 @@
 #' \eqn{i^{th}} row of the input matrix for the \eqn{j^{th}} sample.
 #' @slot val A numeric matrix storing the unique rows of input matrix/matrices.
 #'
+#' @seealso \code{\link{DRMatrix}}
+#'
+#' @rdname DRMatrix-class
+#'
 #' @importFrom methods setClass
 #'
 #' @export
@@ -58,15 +62,50 @@ setClass("DRMatrix",
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Validity
 ###
-### TODO: Validity method. map should be positive integer with no duplicates
-###       and max equal to nrow(val). val should be numeric.
+
+.valid.DRMatrix.key <- function(x) {
+  if (!is.matrix(slot(x, "key")) ||
+      isTRUE(any(slot(x, "key"), na.rm = TRUE) < 0)) {
+    return(paste0("'key' slot of a ", class(x), " must be a matrix of ",
+                  "positive integers (NAs permitted)"))
+  }
+  col_max <- apply(slot(x, "key"), 1, max)
+  if (isTRUE(any(slot(x, "key") > nrow(slot(x, "val")), na.rm = TRUE))) {
+    return("Element(s) of key > nrow(val)")
+  }
+  NULL
+}
+
+.valid.DRMatrix.val <- function(x) {
+  if (!is.matrix(slot(x, "val")) || !is.numeric(slot(x, "val"))) {
+    return(paste0("'val' slot of a ", class(x), " must be a numeric matrix"))
+  }
+}
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
 ###
 
 # TODO: Document how dimnames are constructed.
-#' @rdname DRMatrix-class
+#' DRMatrix constructor
+#'
+#' Construct a \link[=DRMatrix-class]{DRMatrix} from a \link[base]{matrix}, a
+#' \link[base]{list} of \link[base]{matrix} objects with identical dimensions,
+#' or a 3-dimensional \link[base]{array}.
+#' @param x A \link[base]{matrix}, \link[base]{list} of \link[base]{matrix}
+#' objects with identical dimensions, or a 3-dimensional \link[base]{array}.
+#' @param dimnames A \link[base]{dimnames} attribute for the DRMatrix: NULL or
+#' a list of length 3. An empty list is treated as \code{NULL}, a list of
+#' length one as row names, and a list of length two as row names and column
+#' names. \strong{TODO: Can the list be named, and are the list names used as
+#' names for the dimensions (see ?matrix)}. If \code{NULL}, the \code{dimnames}
+#' are constructed from \code{x}; see Dimnames.
+#'
+#' @section Dimnames:
+#' \strong{TODO}
+#'
+#' @return A \link[=DRMatrix-class]{DRMatrix} object.
+#' @rdname DRMatrix
 #' @importFrom methods setMethod
 #'
 #' @export
@@ -83,7 +122,8 @@ setMethod("DRMatrix", "matrix",
 )
 
 # NOTE: DRMatrix() is to new("DRMatrix") what matrix() is to new("matrix").
-#' @rdname DRMatrix-class
+#' @rdname DRMatrix
+#' @inheritParams DRMatrix,matrix-method
 #' @importFrom methods setMethod
 #'
 #' @export
@@ -104,7 +144,8 @@ setMethod("DRMatrix", "missing",
 #       x with non-NULL rownames; colnames are taken from names(x); the third
 #       dimension name are the rownames of first element of x with non-NULL
 #       colnames.
-#' @rdname DRMatrix-class
+#' @rdname DRMatrix
+#' @inheritParams DRMatrix,matrix-method
 #' @importFrom methods setMethod slot
 #'
 #' @export
@@ -136,7 +177,10 @@ setMethod("DRMatrix", "list",
           }
 )
 
-#' @rdname DRMatrix-class
+#' @rdname DRMatrix
+#' @inheritParams DRMatrix,matrix-method
+#' @param MARGIN An integer given the dimension number that distinguishes
+#' samples; see Examples.
 #' @importFrom methods setMethod
 #'
 #' @export
@@ -177,6 +221,7 @@ setMethod("DRMatrix", "array",
 ### dim
 
 #' @rdname DRMatrix-class
+#' @param x A \link{DRMatrix} object.
 #' @importFrom methods setMethod slot
 #'
 #' @export
@@ -190,9 +235,23 @@ setMethod("dim", "DRMatrix",
   }
 )
 
+### ncslice
+
+#' @rdname DRMatrix-class
+#' @inheritParams dim,DRMatrix-method
+#' @importFrom methods setMethod
+#'
+#' @export
+setMethod("nslice", "DRMatrix",
+          function(x) {
+            dim(x)[3L]
+          }
+)
+
 ### length
 
 #' @rdname DRMatrix-class
+#' @inheritParams dim,DRMatrix-method
 #' @importFrom methods setMethod
 #'
 #' @export
@@ -205,6 +264,7 @@ setMethod("length", "DRMatrix",
 ### dimnames
 
 #' @rdname DRMatrix-class
+#' @inheritParams dim,DRMatrix-method
 #' @importFrom methods setMethod slot
 #'
 #' @export
@@ -218,6 +278,19 @@ setMethod("dimnames", "DRMatrix",
             } else {
               dn
             }
+          }
+)
+
+### slicenames
+
+#' @rdname DRMatrix-class
+#' @inheritParams dim,DRMatrix-method
+#' @importFrom methods setMethod slot
+#'
+#' @export
+setMethod("slicenames", "DRMatrix",
+          function(x) {
+            dimnames(x)[[3L]]
           }
 )
 
@@ -245,6 +318,31 @@ setReplaceMethod("dimnames", c("DRMatrix", "list"),
                    rownames(slot(x, "key")) <- value[[1L]]
                    colnames(slot(x, "key")) <- value[[2L]]
                    colnames(slot(x, "val")) <- value[[3L]]
+                   x
+                 }
+)
+
+### slicenames<-
+
+#' @rdname DRMatrix-class
+#' @importFrom methods setReplaceMethod slot<-
+#'
+#' @export
+setReplaceMethod("slicenames", c("DRMatrix", "NULL"),
+                 function(x, value) {
+                   # NOTE: Can't do dimnames(x)[[3L]] <- NULL
+                   colnames(slot(x, "val")) <- NULL
+                   x
+                 }
+)
+
+#' @rdname DRMatrix-class
+#' @importFrom methods setReplaceMethod slot<-
+#'
+#' @export
+setReplaceMethod("slicenames", c("DRMatrix", "character"),
+                 function(x, value) {
+                   dimnames(x)[[3L]] <- value
                    x
                  }
 )
@@ -391,64 +489,83 @@ setReplaceMethod("[", "DRMatrix",
 
 ### rbind/cbind
 
-# NOTE: rbind,DRMatrix-method uses *colnames* of the first object with non-NULL
-#       colnames in ... and does not check for conflicts; rownames are never
-#       preserved. This follows the behaviour of rbind,matrix-method.
+.bind_DRMatrix <- function(lst, bind) {
+  if (length(lst) == 0L) {
+    return(DRMatrix())
+  }
+  ok_nslice <- vapply(lst, function(drmatrix, ns1) {
+    isTRUE(nslice(drmatrix) == ns1)
+  }, logical(1L), ns1 = nslice(lst[[1L]]))
+  if (!all(ok_nslice)) {
+    stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
+         "nslice")
+  }
+  if (bind == "rbind") {
+    ok_ncol <- vapply(lst, function(drmatrix, nc1) {
+      isTRUE(ncol(drmatrix) == nc1)
+    }, logical(1L), nc1 = ncol(lst[[1L]]))
+    if (!all(ok_ncol)) {
+      stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
+           "ncol")
+    }
+  }
+  if (bind == "cbind") {
+    ok_nrow <- vapply(lst, function(drmatrix, nr1) {
+      isTRUE(nrow(drmatrix) == nr1)
+    }, logical(1L), nr1 = nrow(lst[[1L]]))
+    if (!all(ok_nrow)) {
+      stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
+           "nrow")
+    }
+  }
+  keys_list <- lapply(lst, slot, "key")
+  max_idx <- lapply(keys_list, max)
+  increment_list <- cumsum(c(0, max_idx[-length(max_idx)]))
+  keys_list <- Map(function(key, increment) {
+    key + increment
+  }, key = keys_list, increment = increment_list)
+  new_key <- do.call(bind, keys_list)
+  new_key_dim <- dim(new_key)
+  new_val <- do.call("rbind", lapply(lst, slot, "val"))
+  # NOTE: new("DRMatrix", key = new_key, val = new_val) works
+  #       (in the sense that the densified matrix is correct),
+  #       however, it's not sparse; need to sparsify val and update
+  #       key accordingly.
+  sparsified <- .sparsify(new_val)
+  new_key <- slot(sparsified, "key")[new_key, ]
+  dim(new_key) <- new_key_dim
+  new_val <- slot(sparsified, "val")
+  new("DRMatrix", key = new_key, val = new_val)
+}
+
+# TODO: dimnames behaviour. Currently, rownames and colnames are stripped
+#       (slicenames are preserved). Are slicenames checked for conflicts?
+#       rownames and colnames should be preserved (or not) in the same manner
+#       as matrix,rbind-method.
 #' @rdname DRMatrix-class
 #' @importFrom methods setMethod slot
 #'
 #' @export
 setMethod("rbind", "DRMatrix",
           function(..., deparse.level = 1) {
-            args <- unname(list(...))
-            ok_dim <- vapply(args, function(drmatrix, nc1) {
-              isTRUE(ncol(drmatrix) == nc1)
-            }, logical(1L), nc1 = ncol(args[[1L]]))
-            if (!all(ok_dim)) {
-              stop("Cannot rbind ", class(args[[1L]]), " objects with ",
-                   "different ncol")
-            }
-            keys_list <- lapply(args, slot, "key")
-            max_idx <- lapply(keys_list, max)
-            increment_list <- cumsum(c(0, max_idx[-length(max_idx)]))
-            keys_list <- Map(function(key, increment) {
-              key + increment
-            }, key = keys_list, increment = increment_list)
-            new_key <- do.call("rbind", keys_list)
-            new_key_dim <- dim(new_key)
-            new_val <- do.call("rbind", lapply(args, slot, "val"))
-            # NOTE: new("DRMatrix", key = new_key, val = new_val) works
-            #       (in the sense that the densified matrix is correct),
-            #       however, it's not sparse; need to sparsify val and update
-            #       key accordingly.
-            sparsified <- .sparsify(new_val)
-            new_key <- slot(sparsified, "key")[new_key, ]
-            dim(new_key) <- new_key_dim
-            new_val <- slot(sparsified, "val")
-            new("DRMatrix", key = new_key, val = new_val)
+            .bind_DRMatrix(unname(list(...)), "rbind")
           }
 )
 
+# TODO: dimnames behaviour. Currently, rownames and colnames are stripped
+#       (slicenames are preserved). Are slicenames checked for conflicts?
+#       rownames and colnames should be preserved (or not) in the same manner
+#       as matrix,cbind-method.
+# NOTE: cbind is used to add samples
 #' @rdname DRMatrix-class
 #' @importFrom methods setMethod
 #'
 #' @export
 setMethod("cbind", "DRMatrix",
           function(..., deparse.level = 1) {
-            args <- unname(list(...))
-            ok_dim <- vapply(args, function(drmatrix, nr1) {
-              isTRUE(nrow(drmatrix) == nr1)
-            }, logical(1L), nr1 = nrow(args[[1L]]))
-            if (!all(ok_dim)) {
-              stop("Cannot rbind ", class(args[[1L]]), " objects with ",
-                   "different ncol")
-            }
-            # TODO: Guts of the function
-
+            .bind_DRMatrix(unname(list(...)), "cbind")
           }
 )
-
-
 
 ### combine
 ### TODO

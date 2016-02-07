@@ -3,12 +3,8 @@
 \docType{class}
 \name{DRMatrix}
 \alias{DRMatrix}
-\alias{DRMatrix,array-method}
-\alias{DRMatrix,list-method}
-\alias{DRMatrix,matrix-method}
-\alias{DRMatrix,missing-method}
 \alias{DRMatrix-class}
-\alias{[,DRMatrix,ANY,ANY,ANY-method}
+\alias{[,DRMatrix,ANY-method}
 \alias{[<-,DRMatrix,ANY,ANY,ANY-method}
 \alias{cbind,DRMatrix-method}
 \alias{dim,DRMatrix-method}
@@ -16,36 +12,43 @@
 \alias{dimnames<-,DRMatrix,NULL-method}
 \alias{dimnames<-,DRMatrix,list-method}
 \alias{length,DRMatrix-method}
+\alias{nslice,DRMatrix-method}
 \alias{rbind,DRMatrix-method}
+\alias{slicenames,DRMatrix-method}
+\alias{slicenames<-,DRMatrix,NULL-method}
+\alias{slicenames<-,DRMatrix,character-method}
 \title{Duplicate row matrices}
 \usage{
 DRMatrix(x, ...)
 
-\S4method{DRMatrix}{matrix}(x, dimnames = NULL)
-
-\S4method{DRMatrix}{missing}(x, dimnames = NULL)
-
-\S4method{DRMatrix}{list}(x, dimnames = NULL)
-
-\S4method{DRMatrix}{array}(x, MARGIN, dimnames = NULL)
-
 \S4method{dim}{DRMatrix}(x)
+
+\S4method{nslice}{DRMatrix}(x)
 
 \S4method{length}{DRMatrix}(x)
 
 \S4method{dimnames}{DRMatrix}(x)
 
+\S4method{slicenames}{DRMatrix}(x)
+
 \S4method{dimnames}{DRMatrix,`NULL`}(x) <- value
 
 \S4method{dimnames}{DRMatrix,list}(x) <- value
 
-\S4method{[}{DRMatrix,ANY,ANY,ANY}(x, i, j, k, ..., drop = FALSE)
+\S4method{slicenames}{DRMatrix,`NULL`}(x) <- value
+
+\S4method{slicenames}{DRMatrix,character}(x) <- value
+
+\S4method{[}{DRMatrix,ANY}(x, i, j, k, ..., drop = FALSE)
 
 \S4method{[}{DRMatrix,ANY,ANY,ANY}(x, i, j, k, ...) <- value
 
 \S4method{rbind}{DRMatrix}(..., deparse.level = 1)
 
 \S4method{cbind}{DRMatrix}(..., deparse.level = 1)
+}
+\arguments{
+\item{x}{A \link{DRMatrix} object.}
 }
 \description{
 The \code{DRMatrix} class provides compressed storage of numeric matrices
@@ -90,4 +93,7 @@ samples. The \eqn{(i, j)}-entry of the \code{key} corresponds to the
 
 \item{\code{val}}{A numeric matrix storing the unique rows of input matrix/matrices.}
 }}
+\seealso{
+\code{\link{DRMatrix}}
+}
 
