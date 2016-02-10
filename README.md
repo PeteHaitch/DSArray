@@ -1,9 +1,9 @@
 # R package: DSArray
 
 [![Project Status: Wip - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/0.1.0/wip.svg)](http://www.repostatus.org/#wip)
-[![Linux Build Status](https://travis-ci.org/PeteHaitch/DRMatrix.svg?branch=master)](https://travis-ci.org/PeteHaitch/DRMatrix)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/PeteHaitch/DRMatrix?svg=true)](https://ci.appveyor.com/project/PeteHaitch/DRMatrix)
-[![Coverage Status](https://img.shields.io/codecov/c/github/PeteHaitch/DRMatrix/master.svg)](https://codecov.io/github/PeteHaitch/DRMatrix?branch=master)
+[![Linux Build Status](https://travis-ci.org/PeteHaitch/DSArray.svg?branch=master)](https://travis-ci.org/PeteHaitch/DSArray)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/PeteHaitch/DSArray?svg=true)](https://ci.appveyor.com/project/PeteHaitch/DSArray)
+[![Coverage Status](https://img.shields.io/codecov/c/github/PeteHaitch/DSArray/master.svg)](https://codecov.io/github/PeteHaitch/DSArray?branch=master)
 
 ---
 
