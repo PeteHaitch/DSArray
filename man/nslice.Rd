@@ -2,12 +2,12 @@
 % Please edit documentation in R/AllGenerics.R
 \name{nslice}
 \alias{nslice}
-\title{The number of \emph{slices} of a \link[=DRMatrix-class]{DRMatrix}}
+\title{The number of \emph{slices} of a \link[=DSArray-class]{DSArray}}
 \usage{
 nslice(x)
 }
 \arguments{
-\item{x}{A \link[=DRMatrix-class]{DRMatrix} object.}
+\item{x}{A \link[=DSArray-class]{DSArray} object.}
 }
 \value{
 An \link[base]{integer} of length 1.
@@ -15,8 +15,8 @@ An \link[base]{integer} of length 1.
 \description{
 Analogous to \code{\link[base]{nrow}} and \code{\link[base]{nrow}},
 \code{nslice} returns the number of \emph{slices} in a
-\link[=DRMatrix-class]{DRMatrix} object. If \code{x} is a
-\link[=DRMatrix-class]{DRMatrix} object then \code{nslice(x)} is equivalent
+\link[=DSArray-class]{DSArray} object. If \code{x} is a
+\link[=DSArray-class]{DSArray} object then \code{nslice(x)} is equivalent
 to \code{dim(x)[3]}.
 }
 

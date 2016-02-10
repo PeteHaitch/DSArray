@@ -1,4 +1,4 @@
-# R package: DRMatrix
+# R package: DSArray
 
 [![Project Status: Wip - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/0.1.0/wip.svg)](http://www.repostatus.org/#wip)
 [![Linux Build Status](https://travis-ci.org/PeteHaitch/DRMatrix.svg?branch=master)](https://travis-ci.org/PeteHaitch/DRMatrix)
@@ -7,19 +7,19 @@
 
 ---
 
-DRMatrix: compressed storage of numeric matrices with many duplicate rows.
+DSArray: compressed storage of 3-dimensional arrays with many duplicate slices.
 
-DRMatrix provides efficient storage of numeric matrices with many duplicate 
-rows via the DRMatrix (**D**uplicate **R**ow **Matrix**) S4 class. A basic 
-matrix-like API is provided for instantiating, subsetting, and 
-combining DRMatrix objects.
+DSArray ("_desiree_") provides efficient storage of 3-dimensional arrays with 
+many duplicate slices via the DSArray (**D**uplicate **S**lice **Array**) S4 
+class. A basic array-like API is provided for instantiating, subsetting, and 
+combining DSArray objects.
 
 ---
 
 ## Installation
 
 ```r
-devtools::install_github("PeteHaitch/DRMatrix")
+devtools::install_github("PeteHaitch/DSArray")
 ```
 
 ---
@@ -34,7 +34,7 @@ __TODO__
 
 The MIT License (MIT)
 
-Copyright (c) 2015-2016 Peter Hickey
+Copyright (c) 2016 Peter Hickey
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

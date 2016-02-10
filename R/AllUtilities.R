@@ -57,7 +57,7 @@ setMethod(".sparsify", "data.table",
                 key[!is.na(key) & key > NA_idx] - 1L
             }
             # Return the result
-            new("DRMatrix", key = as.matrix(key), val = val)
+            new("DSArray", key = as.matrix(key), val = val)
           }
 )
 # To avoid WARNINGs about "Undefined global functions or variables" in
@@ -102,7 +102,7 @@ setMethod(".sparsify", "data.frame",
 
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
-.validate_DRMatrix_subscript <- function(x, i, j, k) {
+.validate_DSArray_subscript <- function(x, i, j, k) {
   if (!missing(i) &&
       ((is.numeric(i) && isTRUE(any(i > nrow(x)))) ||
        (is.character(i) && isTRUE(any(!i %in% rownames(x)))))) {
@@ -123,7 +123,7 @@ setMethod(".sparsify", "data.frame",
 
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
-.validate_DRMatrix_value_dim <- function(value, i, j, k, x) {
+.validate_DSArray_value_dim <- function(value, i, j, k, x) {
   value_dim <- dim(value)
   if (missing(i) && missing(j)) {
     if (!missing(k)) {

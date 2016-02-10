@@ -1,13 +1,14 @@
-Package: DRMatrix
+Package: DSArray
 Type: Package
-Title: Compressed Storage of Numeric Matrices With Many Duplicate Rows
+Title: Compressed Storage of 3-Dimensional Arrays With Many Duplicate Slices
 Version: 0.0.9000
 Authors@R: c(person("Peter", "Hickey", role = c("aut", "cre"),
     email = "peter.hickey@gmail.com"))
-Description: Compressed storage of numeric matrices with many duplicate rows.
+Description: Compressed storage of 3-dimensional arrays with many duplicate
+    slices.
 License: MIT + file LICENSE
-URL: https://github.com/PeteHaitch/DRMatrix
-BugReports: https://github.com/PeteHaitch/DRMatrix/issues
+URL: https://github.com/PeteHaitch/DSArray
+BugReports: https://github.com/PeteHaitch/DSArray/issues
 LazyData: TRUE
 Depends:
     R (>= 2.8.0)

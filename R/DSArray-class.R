@@ -1,60 +1,72 @@
 ### =========================================================================
-### DRMatrix objects
+### DSArray objects
 ### -------------------------------------------------------------------------
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### DRMatrix class
+### DSArray class
 ###
 
-#' Duplicate row matrices
+#' Duplicate slice arrays
 #'
-#' The \code{DRMatrix} class provides compressed storage of numeric matrices
-#' with many duplicate rows. A basic matrix-like API is provided for
-#' instantiating, subsetting, and combining DRMatrix objects.
+#' The \code{DSArray} class provides compressed storage of 3-dimensional
+#' arrays when the array has many duplicate slices. A basic array-like API is
+#' provided for instantiating, subsetting, and combining DSArray objects.
 #'
 #' @details
-#' Given a numeric \link[base]{matrix}, \code{x}, the DRMatrix representation
-#' of \code{x}, \code{drm}, stores the \emph{unique} rows of \code{x} as a
-#' \link{matrix} (\code{slot(drm, "key")}) and an integer column vector
-#' (\code{slot(drm, "val")}) mapping each row of \code{x} to a row in
-#' \code{slot(drm, "val")}. This means that \code{slot(drm, "map")} is a
-#' permutation of \eqn{[1, \ldots} \code{nrow(x)} \eqn{]} and \code{nrow(val)}
-#' \eqn{\le} \code{nrow(x)}. This representation is similar to an associative
-#' array, hence the use of the slot names \code{key} and \code{val}.
+#' Suppose we have a 3-dimensional array, \code{x}, with dimensions indexed by
+#' \code{i} (rows), \code{j} (columns), and \code{k} (\emph{slices}). We refer
+#' to \code{x[i, j, ]} as an \code{(i,j)}-slice (here
+#' \code{length(i) == length(j) == 1}). For certain data it is the case that
+#' many of the \code{(i,j)}-slices of \code{x} are repeated or duplicated
+#' multiple times. These data can be more efficiently stored by retaining only
+#' those unique \code{(i,j)}-slices of \code{x} and creating a map
+#' between the original data and these unique \code{(i,j)}-slices. This is
+#' what the DSArray class implements. Of course, a DSArray representation of
+#' \code{x} is only worthwhile if \code{x} contains many such duplicate
+#' \code{(i,j)}-slices.
 #'
-#' A DRmatrix representation of \code{x} is only worthwhile if
-#' \code{x} contains many duplicate rows since this ensures
-#' that \code{nrow(val)} is much smaller than \code{nrow(x)}. This is
-#' especially efficient if many of these rows are \code{NA} since these rows
-#' need not be explicitly stored in \code{slot(drm, "val")}. Furthermore, the
-#' DRMatrix representation of \code{x} becomes proportionally more efficient as
-#' \code{ncol(x)} increases. \strong{TODO:
-#' explicit formula for decrease in memory as a function of \code{nrow{x}},
-#' \code{ncol(x)}, and \code{sum(duplicated(x))}}
+#' The DSArray class was initially conceived for use as an element of a
+#' \link[SummarizedExperiment]{Assays} object in the \code{assays} slot of a
+#' \link[SummarizedExperiment]{SummarizedExperiment} object. Therefore \code{i}
+#' indexes rows (features/ranges), \code{j} indexes columns (samples), and
+#' \code{k} indexes slices. Importantly, the aim is to have the DSArray version
+#' of \code{x} behave from the user's perspective just as if it were in its
+#' "dense" form.
 #'
-#' A single DRMatrix object can in fact store data from multiple matrices,
-#' \code{x1}, ..., \code{xn} provided that each matrix has the same dimensions
-#' (\code{dim(x1) == ... == dim(xn)}). The \code{slot(drm, "key")} is then an
-#' integer matrix where the columns index the input matrices \code{x1} through
-#' \code{xn}. The \code{slot(drm, "val")} remains a single numeric
-#' \link{matrix}, meaning that the memory efficiency increases with the number
-#' of rows that are duplicated across \code{x1}, ..., \code{xn}.
+#' @section Design and Internals:
+#' Let \code{x} be a 3-dimensional array and let \code{dsa} be its DSArray
+#' representation. A duplicate \code{(i,j)}-slice of \code{x} is one such that
+#' \code{identical(x[i1, j1, ], x[i2, j2, ])} returns \code{TRUE} with at
+#' least one of \code{i1 != i2} or \code{j1 != j2}. \code{dsa} stores the
+#' unique \code{(i,j)}-slices of \code{x} as a \link{matrix}
+#' (\code{slot(dsa, "val")}) and an integer matrix (\code{slot(dsa, "map")})
+#' mapping the \code{(i, j)}-slice of \code{x} to a row of
+#' \code{slot(dsa, "val")}.
 #'
-#' @slot key An integer matrix with \code{nrow} equal to the number of rows in
-#' the non-sparse version of the data and \code{ncol} equal to the number of
-#' samples. The \eqn{(i, j)}-entry of the \code{key} corresponds to the
-#' \eqn{i^{th}} row of the input matrix for the \eqn{j^{th}} sample.
-#' @slot val A numeric matrix storing the unique rows of input matrix/matrices.
+#' As noted above, the DSArray representation of \code{x} is only worthwhile if
+#' \code{x} contains many duplicate \code{(i,j)}-slices since this ensures
+#' that \code{nrow(val)} is much smaller than \code{nrow(x)}. Furthermore, the
+#' DSArray representation of \code{x} becomes proportionally more efficient as
+#' the number of slices (\code{dim(x)[3]}) increases. The DSArray
+#' representation is especially efficient if many of these slices are \code{NA}
+#' since these rows need not be explicitly stored in \code{slot(dsa, "val")}.
+#' \strong{TODO: explicit formula for decrease in memory as a function of
+#' \code{nrow{x}}, \code{ncol(x)}, and \code{sum(duplicated(x))}}.
 #'
-#' @seealso \code{\link{DRMatrix}}
+#' @slot key An integer matrix where the \eqn{(i, j)}-entry of the \code{key}
+#' corresponds to the \eqn{i^{th}} row and \eqn{j^{th}} column of the original
+#' 3-dimensional "dense" array.
+#' @slot val A matrix storing the unique slices of the input array.
 #'
-#' @rdname DRMatrix-class
+#' @seealso \code{\link{DSArray}}
+#'
+#' @rdname DSArray-class
 #'
 #' @importFrom methods setClass
 #'
 #' @export
-setClass("DRMatrix",
+setClass("DSArray",
          slots = c("key" = "matrix",
                    "val" = "matrix")
 )
@@ -63,7 +75,7 @@ setClass("DRMatrix",
 ### Validity
 ###
 
-.valid.DRMatrix.key <- function(x) {
+.valid.DSArray.key <- function(x) {
   if (!is.matrix(slot(x, "key")) ||
       isTRUE(any(slot(x, "key"), na.rm = TRUE) < 0)) {
     return(paste0("'key' slot of a ", class(x), " must be a matrix of ",
@@ -76,7 +88,7 @@ setClass("DRMatrix",
   NULL
 }
 
-.valid.DRMatrix.val <- function(x) {
+.valid.DSArray.val <- function(x) {
   if (!is.matrix(slot(x, "val")) || !is.numeric(slot(x, "val"))) {
     return(paste0("'val' slot of a ", class(x), " must be a numeric matrix"))
   }
@@ -86,15 +98,16 @@ setClass("DRMatrix",
 ### Constructor
 ###
 
-# TODO: Document how dimnames are constructed.
-#' DRMatrix constructor
+#' DSArray constructor
 #'
-#' Construct a \link[=DRMatrix-class]{DRMatrix} from a \link[base]{matrix}, a
-#' \link[base]{list} of \link[base]{matrix} objects with identical dimensions,
-#' or a 3-dimensional \link[base]{array}.
-#' @param x A \link[base]{matrix}, \link[base]{list} of \link[base]{matrix}
-#' objects with identical dimensions, or a 3-dimensional \link[base]{array}.
-#' @param dimnames A \link[base]{dimnames} attribute for the DRMatrix: NULL or
+#' Construct a \link[=DSArray-class]{DSArray} from a 3-dimensional
+#' \link[base]{array}, a \link[base]{matrix}, or a \link[base]{list} of
+#' \link[base]{matrix} objects with identical dimensions.
+#'
+#' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
+#' \link[base]{matrix} objects with identical dimensions, or a
+#' \link[base]{matrix}.
+#' @param dimnames A \link[base]{dimnames} attribute for the DSArray: NULL or
 #' a list of length 3. An empty list is treated as \code{NULL}, a list of
 #' length one as row names, and a list of length two as row names and column
 #' names. \strong{TODO: Can the list be named, and are the list names used as
@@ -102,41 +115,41 @@ setClass("DRMatrix",
 #' are constructed from \code{x}; see Dimnames.
 #'
 #' @section Dimnames:
-#' \strong{TODO}
+#' \strong{TODO: Document how dimnames are constructed.}
 #'
-#' @return A \link[=DRMatrix-class]{DRMatrix} object.
-#' @rdname DRMatrix
+#' @return A \link[=DSArray-class]{DSArray} object.
+#' @rdname DSArray
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("DRMatrix", "matrix",
+setMethod("DSArray", "matrix",
           function(x, dimnames = NULL) {
-            drm <- .sparsify(x)
+            dsa <- .sparsify(x)
             if (is.null(dimnames)) {
               dimnames <- dimnames(x)
               dimnames <- list(dimnames[[1L]], NULL, dimnames[[2L]])
             }
-            dimnames(drm) <- dimnames
-            drm
+            dimnames(dsa) <- dimnames
+            dsa
           }
 )
 
-# NOTE: DRMatrix() is to new("DRMatrix") what matrix() is to new("matrix").
-#' @rdname DRMatrix
-#' @inheritParams DRMatrix,matrix-method
+# NOTE: DSArray() is to new("DSArray") what array() is to new("array").
+#' @rdname DSArray
+#' @inheritParams DSArray,matrix-method
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("DRMatrix", "missing",
+setMethod("DSArray", "missing",
           function(x, dimnames = NULL) {
             x <- matrix()
-            drm <- DRMatrix(x)
+            dsa <- DSArray(x)
             if (is.null(dimnames)) {
               dimnames <- dimnames(x)
               dimnames <- list(dimnames[[1L]], NULL, dimnames[[2L]])
             }
-            dimnames(drm) <- dimnames
-            drm
+            dimnames(dsa) <- dimnames
+            dsa
           }
 )
 
@@ -144,12 +157,12 @@ setMethod("DRMatrix", "missing",
 #       x with non-NULL rownames; colnames are taken from names(x); the third
 #       dimension name are the rownames of first element of x with non-NULL
 #       colnames.
-#' @rdname DRMatrix
-#' @inheritParams DRMatrix,matrix-method
+#' @rdname DSArray
+#' @inheritParams DSArray,matrix-method
 #' @importFrom methods setMethod slot
 #'
 #' @export
-setMethod("DRMatrix", "list",
+setMethod("DSArray", "list",
           function(x, dimnames = NULL) {
             stopifnot(length(x) > 0)
             cl <- vapply(x, class, character(1L))
@@ -162,7 +175,7 @@ setMethod("DRMatrix", "list",
             x_matrix <- do.call("rbind", x)
             sparsified <- .sparsify(x_matrix)
             dim(slot(sparsified, "key")) <- list(d[[1L]][[1L]], length(d))
-            drm <- sparsified
+            dsa <- sparsified
             if (is.null(dimnames)) {
               dimnames <- lapply(x, dimnames)
               rn <- lapply(dimnames, "[[", 1L)
@@ -172,19 +185,19 @@ setMethod("DRMatrix", "list",
               d3n <- d3n[[which.max(!vapply(d3n, is.null, logical(1L)))]]
               dimnames <- list(rn, cn, d3n)
             }
-            dimnames(drm) <- dimnames
-            drm
+            dimnames(dsa) <- dimnames
+            dsa
           }
 )
 
-#' @rdname DRMatrix
-#' @inheritParams DRMatrix,matrix-method
-#' @param MARGIN An integer given the dimension number that distinguishes
-#' samples; see Examples.
+#' @rdname DSArray
+#' @inheritParams DSArray,matrix-method
+#' @param MARGIN An integer given the dimension number that indexes samples;
+#' see Examples.
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("DRMatrix", "array",
+setMethod("DSArray", "array",
           function(x, MARGIN, dimnames = NULL) {
             d <- dim(x)
             n <- length(d)
@@ -210,7 +223,7 @@ setMethod("DRMatrix", "array",
             if (is.null(dimnames)) {
               names(x_list) <- dimnames(x)[[MARGIN]]
             }
-            DRMatrix(x_list, dimnames = dimnames)
+            DSArray(x_list, dimnames = dimnames)
           }
 )
 
@@ -220,12 +233,12 @@ setMethod("DRMatrix", "array",
 
 ### dim
 
-#' @rdname DRMatrix-class
-#' @param x A \link{DRMatrix} object.
+#' @rdname DSArray-class
+#' @param x A \link{DSArray} object.
 #' @importFrom methods setMethod slot
 #'
 #' @export
-setMethod("dim", "DRMatrix",
+setMethod("dim", "DSArray",
   function(x) {
     if (identical(slot(x, "key"), matrix())) {
       c(0L, 0L, 0L)
@@ -237,12 +250,12 @@ setMethod("dim", "DRMatrix",
 
 ### ncslice
 
-#' @rdname DRMatrix-class
-#' @inheritParams dim,DRMatrix-method
+#' @rdname DSArray-class
+#' @inheritParams dim,DSArray-method
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("nslice", "DRMatrix",
+setMethod("nslice", "DSArray",
           function(x) {
             dim(x)[3L]
           }
@@ -250,12 +263,12 @@ setMethod("nslice", "DRMatrix",
 
 ### length
 
-#' @rdname DRMatrix-class
-#' @inheritParams dim,DRMatrix-method
+#' @rdname DSArray-class
+#' @inheritParams dim,DSArray-method
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("length", "DRMatrix",
+setMethod("length", "DSArray",
           function(x) {
             prod(dim(x))
           }
@@ -263,12 +276,12 @@ setMethod("length", "DRMatrix",
 
 ### dimnames
 
-#' @rdname DRMatrix-class
-#' @inheritParams dim,DRMatrix-method
+#' @rdname DSArray-class
+#' @inheritParams dim,DSArray-method
 #' @importFrom methods setMethod slot
 #'
 #' @export
-setMethod("dimnames", "DRMatrix",
+setMethod("dimnames", "DSArray",
           function(x) {
             dn <- list(rownames(slot(x, "key")),
                        colnames(slot(x, "key")),
@@ -283,12 +296,12 @@ setMethod("dimnames", "DRMatrix",
 
 ### slicenames
 
-#' @rdname DRMatrix-class
-#' @inheritParams dim,DRMatrix-method
+#' @rdname DSArray-class
+#' @inheritParams dim,DSArray-method
 #' @importFrom methods setMethod slot
 #'
 #' @export
-setMethod("slicenames", "DRMatrix",
+setMethod("slicenames", "DSArray",
           function(x) {
             dimnames(x)[[3L]]
           }
@@ -296,11 +309,11 @@ setMethod("slicenames", "DRMatrix",
 
 ### dimnames<-
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setReplaceMethod slot<-
 #'
 #' @export
-setReplaceMethod("dimnames", c("DRMatrix", "NULL"),
+setReplaceMethod("dimnames", c("DSArray", "NULL"),
                  function(x, value) {
                    rownames(slot(x, "key")) <- NULL
                    colnames(slot(x, "key")) <- NULL
@@ -309,11 +322,11 @@ setReplaceMethod("dimnames", c("DRMatrix", "NULL"),
                  }
 )
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setReplaceMethod slot<-
 #'
 #' @export
-setReplaceMethod("dimnames", c("DRMatrix", "list"),
+setReplaceMethod("dimnames", c("DSArray", "list"),
                  function(x, value) {
                    rownames(slot(x, "key")) <- value[[1L]]
                    colnames(slot(x, "key")) <- value[[2L]]
@@ -324,11 +337,11 @@ setReplaceMethod("dimnames", c("DRMatrix", "list"),
 
 ### slicenames<-
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setReplaceMethod slot<-
 #'
 #' @export
-setReplaceMethod("slicenames", c("DRMatrix", "NULL"),
+setReplaceMethod("slicenames", c("DSArray", "NULL"),
                  function(x, value) {
                    # NOTE: Can't do dimnames(x)[[3L]] <- NULL
                    colnames(slot(x, "val")) <- NULL
@@ -336,11 +349,11 @@ setReplaceMethod("slicenames", c("DRMatrix", "NULL"),
                  }
 )
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setReplaceMethod slot<-
 #'
 #' @export
-setReplaceMethod("slicenames", c("DRMatrix", "character"),
+setReplaceMethod("slicenames", c("DSArray", "character"),
                  function(x, value) {
                    dimnames(x)[[3L]] <- value
                    x
@@ -356,12 +369,12 @@ setReplaceMethod("slicenames", c("DRMatrix", "character"),
 #       and k is for selecting columns (of val).
 #' @importFrom data.table data.table
 #' @importFrom methods new slot
-.extract_DRMatrix_subset <- function(x, i, j, k, ..., drop = FALSE) {
+.extract_DSArray_subset <- function(x, i, j, k, ..., drop = FALSE) {
   if (drop) {
     warning("'drop' ignored '[,", class(x), ",ANY,ANY-method'")
   }
-  # NOTE: .validate_DRMatrix_subscript() is called purely for its side effects.
-  x <- .validate_DRMatrix_subscript(x, i, j, k)
+  # NOTE: .validate_DSArray_subscript() is called purely for its side effects.
+  x <- .validate_DSArray_subscript(x, i, j, k)
   new_key_dimnames <- dimnames(slot(x, "key"))
   if (missing(i) && missing(j)) {
     if (!missing(k)) {
@@ -407,7 +420,7 @@ setReplaceMethod("slicenames", c("DRMatrix", "character"),
     }
     # NOTE: By working with only the unique rows of ii we avoid some
     #       unnecessary expansions of the val slot at the expense of some
-    #       fiddly bookkeeping to update the key of the new DRMatrix.
+    #       fiddly bookkeeping to update the key of the new DSArray.
     unq_ii <- unique(ii, MARGIN = 1)
     if (missing(k)) {
       new_val <- slot(x, "val")[unq_ii, , drop = FALSE]
@@ -428,7 +441,7 @@ setReplaceMethod("slicenames", c("DRMatrix", "character"),
     if (!missing(j) && anyDuplicated(j)) {
       new_key <- new_key[, j, drop = FALSE]
     }
-    new("DRMatrix", key = new_key, val = new_val)
+    new("DSArray", key = new_key, val = new_val)
   }
 }
 # To avoid WARNINGs about "Undefined global functions or variables" in
@@ -436,23 +449,23 @@ setReplaceMethod("slicenames", c("DRMatrix", "character"),
 #' @importFrom utils globalVariables
 globalVariables("sp_key")
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("[", "DRMatrix",
-          .extract_DRMatrix_subset
+setMethod("[", "DSArray",
+          .extract_DSArray_subset
 )
 
 ### [<-
 
 # NOTE: Like [<-,matrix-method, the original dimnames of x are preserved.
 #' @importFrom methods slot slot<-
-.replace_DRMatrix_subset <- function(x, i, j, k, value) {
-  # NOTE: .validate_DRMatrix_subscript() is called purely for its side effects.
-  x <- .validate_DRMatrix_subscript(x, i, j, k)
-  # NOTE: .validate_DRMatrix_value_dim() is called purely for its side effects.
-  value <- .validate_DRMatrix_value_dim(value, i, j, k, x)
+.replace_DSArray_subset <- function(x, i, j, k, value) {
+  # NOTE: .validate_DSArray_subscript() is called purely for its side effects.
+  x <- .validate_DSArray_subscript(x, i, j, k)
+  # NOTE: .validate_DSArray_value_dim() is called purely for its side effects.
+  value <- .validate_DSArray_value_dim(value, i, j, k, x)
   if (missing(i) && missing(j)) {
     if (!missing(k)) {
       slot(x, "val")[, k] <- slot(value, "val")
@@ -478,31 +491,31 @@ setMethod("[", "DRMatrix",
   }
 }
 
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'
 #' @export
-setReplaceMethod("[", "DRMatrix",
+setReplaceMethod("[", "DSArray",
                  function(x, i, j, k, ..., value)
-                 .replace_DRMatrix_subset(x, i, j, k, value)
+                 .replace_DSArray_subset(x, i, j, k, value)
 )
 
 ### rbind/cbind
 
-.bind_DRMatrix <- function(lst, bind) {
+.bind_DSArray <- function(lst, bind) {
   if (length(lst) == 0L) {
-    return(DRMatrix())
+    return(DSArray())
   }
-  ok_nslice <- vapply(lst, function(drmatrix, ns1) {
-    isTRUE(nslice(drmatrix) == ns1)
+  ok_nslice <- vapply(lst, function(dsaatrix, ns1) {
+    isTRUE(nslice(dsaatrix) == ns1)
   }, logical(1L), ns1 = nslice(lst[[1L]]))
   if (!all(ok_nslice)) {
     stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
          "nslice")
   }
   if (bind == "rbind") {
-    ok_ncol <- vapply(lst, function(drmatrix, nc1) {
-      isTRUE(ncol(drmatrix) == nc1)
+    ok_ncol <- vapply(lst, function(dsaatrix, nc1) {
+      isTRUE(ncol(dsaatrix) == nc1)
     }, logical(1L), nc1 = ncol(lst[[1L]]))
     if (!all(ok_ncol)) {
       stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
@@ -510,8 +523,8 @@ setReplaceMethod("[", "DRMatrix",
     }
   }
   if (bind == "cbind") {
-    ok_nrow <- vapply(lst, function(drmatrix, nr1) {
-      isTRUE(nrow(drmatrix) == nr1)
+    ok_nrow <- vapply(lst, function(dsaatrix, nr1) {
+      isTRUE(nrow(dsaatrix) == nr1)
     }, logical(1L), nr1 = nrow(lst[[1L]]))
     if (!all(ok_nrow)) {
       stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
@@ -527,7 +540,7 @@ setReplaceMethod("[", "DRMatrix",
   new_key <- do.call(bind, keys_list)
   new_key_dim <- dim(new_key)
   new_val <- do.call("rbind", lapply(lst, slot, "val"))
-  # NOTE: new("DRMatrix", key = new_key, val = new_val) works
+  # NOTE: new("DSArray", key = new_key, val = new_val) works
   #       (in the sense that the densified matrix is correct),
   #       however, it's not sparse; need to sparsify val and update
   #       key accordingly.
@@ -535,20 +548,20 @@ setReplaceMethod("[", "DRMatrix",
   new_key <- slot(sparsified, "key")[new_key, ]
   dim(new_key) <- new_key_dim
   new_val <- slot(sparsified, "val")
-  new("DRMatrix", key = new_key, val = new_val)
+  new("DSArray", key = new_key, val = new_val)
 }
 
 # TODO: dimnames behaviour. Currently, rownames and colnames are stripped
 #       (slicenames are preserved). Are slicenames checked for conflicts?
 #       rownames and colnames should be preserved (or not) in the same manner
 #       as matrix,rbind-method.
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setMethod slot
 #'
 #' @export
-setMethod("rbind", "DRMatrix",
+setMethod("rbind", "DSArray",
           function(..., deparse.level = 1) {
-            .bind_DRMatrix(unname(list(...)), "rbind")
+            .bind_DSArray(unname(list(...)), "rbind")
           }
 )
 
@@ -557,13 +570,13 @@ setMethod("rbind", "DRMatrix",
 #       rownames and colnames should be preserved (or not) in the same manner
 #       as matrix,cbind-method.
 # NOTE: cbind is used to add samples
-#' @rdname DRMatrix-class
+#' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'
 #' @export
-setMethod("cbind", "DRMatrix",
+setMethod("cbind", "DSArray",
           function(..., deparse.level = 1) {
-            .bind_DRMatrix(unname(list(...)), "cbind")
+            .bind_DSArray(unname(list(...)), "cbind")
           }
 )
 

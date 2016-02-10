@@ -3,27 +3,27 @@
 \name{slicenames}
 \alias{slicenames}
 \alias{slicenames<-}
-\title{The slice names of a \link[=DRMatrix-class]{DRMatrix}}
+\title{The slice names of a \link[=DSArray-class]{DSArray}}
 \usage{
 slicenames(x)
 
 slicenames(x) <- value
 }
 \arguments{
-\item{x}{A \link[=DRMatrix-class]{DRMatrix} object.}
+\item{x}{A \link[=DSArray-class]{DSArray} object.}
 
 \item{value}{Either \code{NULL} or a character vector of length equal to
 \code{\link{nslice}(x)}.}
 }
 \value{
 The getter returns either \code{NULL} or a character vector of
-length \code{\link[DRMatrix]{nslice}(x)}.
+length \code{\link[DSArray]{nslice}(x)}.
 }
 \description{
 Analogous to \code{\link[base]{rownames}} and \code{\link[base]{colnames}},
 \code{slicenames} returns the names of the \emph{slices} of a
-\link[=DRMatrix-class]{DRMatrix} object. If \code{x} is a
-\link[=DRMatrix-class]{DRMatrix} object then \code{slicenames(x)} is
+\link[=DSArray-class]{DSArray} object. If \code{x} is a
+\link[=DSArray-class]{DSArray} object then \code{slicenames(x)} is
 equivalent to \code{dimnames(x)[3]}. Similarly,
 \code{slicenames(x) <- value} sets the \code{slicenames} of the object.
 }
