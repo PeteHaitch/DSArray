@@ -14,7 +14,7 @@
 
 \S4method{DSArray}{list}(x, dimnames = NULL)
 
-\S4method{DSArray}{array}(x, MARGIN, dimnames = NULL)
+\S4method{DSArray}{array}(x, MARGIN = 2L, dimnames = NULL)
 }
 \arguments{
 \item{x}{A 3-dimensional \link[base]{array}, a \link[base]{list} of
@@ -25,11 +25,12 @@
 a list of length 3. An empty list is treated as \code{NULL}, a list of
 length one as row names, and a list of length two as row names and column
 names. \strong{TODO: Can the list be named, and are the list names used as
-names for the dimensions (see ?matrix)}. If \code{NULL}, the \code{dimnames}
+names for the dimensions (see ?array)}. If \code{NULL}, the \code{dimnames}
 are constructed from \code{x}; see Dimnames.}
 
 \item{MARGIN}{An integer given the dimension number that indexes samples;
-see Examples.}
+see Examples. The default, \code{MARGIN = 2}, corresponds to columns of
+\code{x} indexing samples.}
 }
 \value{
 A \link[=DSArray-class]{DSArray} object.

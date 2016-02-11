@@ -2,7 +2,6 @@
 ### DSArray objects
 ### -------------------------------------------------------------------------
 
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### DSArray class
 ###
@@ -89,8 +88,8 @@ setClass("DSArray",
 }
 
 .valid.DSArray.val <- function(x) {
-  if (!is.matrix(slot(x, "val")) || !is.numeric(slot(x, "val"))) {
-    return(paste0("'val' slot of a ", class(x), " must be a numeric matrix"))
+  if (!is.matrix(slot(x, "val"))) {
+    return(paste0("'val' slot of a ", class(x), " must be a matrix"))
   }
 }
 
@@ -111,7 +110,7 @@ setClass("DSArray",
 #' a list of length 3. An empty list is treated as \code{NULL}, a list of
 #' length one as row names, and a list of length two as row names and column
 #' names. \strong{TODO: Can the list be named, and are the list names used as
-#' names for the dimensions (see ?matrix)}. If \code{NULL}, the \code{dimnames}
+#' names for the dimensions (see ?array)}. If \code{NULL}, the \code{dimnames}
 #' are constructed from \code{x}; see Dimnames.
 #'
 #' @section Dimnames:
@@ -193,14 +192,20 @@ setMethod("DSArray", "list",
 #' @rdname DSArray
 #' @inheritParams DSArray,matrix-method
 #' @param MARGIN An integer given the dimension number that indexes samples;
-#' see Examples.
+#' see Examples. The default, \code{MARGIN = 2}, corresponds to columns of
+#' \code{x} indexing samples.
 #' @importFrom methods setMethod
 #'
 #' @export
 setMethod("DSArray", "array",
-          function(x, MARGIN, dimnames = NULL) {
+          function(x, MARGIN = 2L, dimnames = NULL) {
             d <- dim(x)
             n <- length(d)
+            # NOTE: Special case for when the array is really a matrix
+            #       (although not classed as such).
+            if (n == 2L) {
+              DSArray(as.matrix(x), dimnames = dimnames)
+            }
             if (n != 3L) {
               stop("array must have 3 dimensions")
             }
@@ -551,6 +556,11 @@ setReplaceMethod("[", "DSArray",
   new("DSArray", key = new_key, val = new_val)
 }
 
+# TODO: Test rbind/cbind in the context of DSArray being an assay in a SE.
+#       That's where we want the behaviour to work!
+# TODO: cbind/rbind don't seem to be "active" until I do something like
+#       library(SummarizeExperiment) which also has a specialised cbind/rbind
+#       method defined.
 # TODO: dimnames behaviour. Currently, rownames and colnames are stripped
 #       (slicenames are preserved). Are slicenames checked for conflicts?
 #       rownames and colnames should be preserved (or not) in the same manner

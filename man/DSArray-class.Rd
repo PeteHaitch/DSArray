@@ -4,8 +4,8 @@
 \name{DSArray}
 \alias{DSArray}
 \alias{DSArray-class}
-\alias{[,DSArray-method}
-\alias{[<-,DSArray-method}
+\alias{[,DSArray,ANY-method}
+\alias{[<-,DSArray,ANY,ANY,ANY-method}
 \alias{cbind,DSArray-method}
 \alias{dim,DSArray-method}
 \alias{dimnames,DSArray-method}
@@ -39,9 +39,9 @@ DSArray(x, ...)
 
 \S4method{slicenames}{DSArray,character}(x) <- value
 
-\S4method{[}{DSArray}(x, i, j, k, ..., drop = FALSE)
+\S4method{[}{DSArray,ANY}(x, i, j, k, ..., drop = FALSE)
 
-\S4method{[}{DSArray}(x, i, j, k, ...) <- value
+\S4method{[}{DSArray,ANY,ANY,ANY}(x, i, j, k, ...) <- value
 
 \S4method{rbind}{DSArray}(..., deparse.level = 1)
 

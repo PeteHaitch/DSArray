@@ -155,3 +155,13 @@ setMethod(".sparsify", "data.frame",
   }
   invisible(value)
 }
+
+# NOTE: Assume each element of the list is one sample's data, i.e., a
+#       column-slice of the resulting 3-dimensional array. This is different to
+#       what base::simplify2array() returns.
+.list_to_array <- function(l, dim = NULL, dimnames = NULL) {
+  if (is.null(dim)) {
+    dim <- c(dim(l[[1]]), length(l))
+  }
+  array(do.call("rbind", l), dim = dim, dimnames = dimnames)
+}
