@@ -36,20 +36,6 @@ se2 <- SummarizedExperiment(zz)
 ### Helper functions
 ###
 
-.densify <- function(x, simplify = TRUE) {
-  l <- lapply(seq_len(ncol(slot(x, "key"))), function(ii) {
-    m <- slot(x, "val")[slot(x, "key")[, ii], , drop = FALSE]
-    rownames(m) <- rownames(x)
-    m
-  })
-  names(l) <- colnames(x)
-  if (simplify) {
-    .list_to_array(l, dim = dim(x), dimnames = dimnames(x))
-  } else {
-    l
-  }
-}
-
 dsa_identical_to_array <- function(dsa, a) {
-  identical(.densify(dsa), a)
+  identical(.densify(dsa, simplify = TRUE, warn = FALSE), a)
 }

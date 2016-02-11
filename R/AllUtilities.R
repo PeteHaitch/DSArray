@@ -165,3 +165,23 @@ setMethod(".sparsify", "data.frame",
   }
   array(do.call("rbind", l), dim = dim, dimnames = dimnames)
 }
+
+# TODO: Make a densify(x, simplify = TRUE) S4 generic and method. It should
+#       call .densify(x, simplify = simplify, warn = FALSE).
+.densify <- function(x, simplify = TRUE, warn = TRUE) {
+  if (warn) {
+    warning(paste0("Densifying 'x'. This can cause a large increase ",
+                   "in memory usage."), call. = FALSE, immediate. = TRUE)
+  }
+  l <- lapply(seq_len(ncol(slot(x, "key"))), function(ii) {
+    m <- slot(x, "val")[slot(x, "key")[, ii], , drop = FALSE]
+    rownames(m) <- rownames(x)
+    m
+  })
+  names(l) <- colnames(x)
+  if (simplify) {
+    .list_to_array(l, dim = dim(x), dimnames = dimnames(x))
+  } else {
+    l
+  }
+}

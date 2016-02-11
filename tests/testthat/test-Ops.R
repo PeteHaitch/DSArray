@@ -1,3 +1,4 @@
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Arith
 ###
@@ -9,7 +10,8 @@ test_that("c(\"DSarray\", \"vector\") signature works", {
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx, 3), op(x, 3)))
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`
+  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
+  #       is because of how `^` is defined separately from the other Ops.
   expect_true(dsa_identical_to_array(xx ^ 3, x ^ 3))
 })
 
@@ -18,7 +20,8 @@ test_that("c(\"vector\", \"DSArray\") signature works", {
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`
+  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
+  #       is because of how `^` is defined separately from the other Ops.
   expect_true(dsa_identical_to_array(3 ^ xx, 3 ^ x))
 })
 
@@ -32,7 +35,8 @@ test_that("Only 'scalar' Arith ops are currently implemented", {
                  paste0("length\\(e1\\) > 1 behaviour is complicated and not ",
                         "yet implemented"))
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`
+  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
+  #       is because of how `^` is defined separately from the other Ops.
   expect_error(xx ^ (1:10),
                paste0("length\\(e2\\) > 1 behaviour is complicated and not ",
                       "yet implemented"))
@@ -46,8 +50,9 @@ test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
   lapply(ops, function(op) {
     expect_error(op(xx, xx), "non-numeric argument to binary operator")
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`
-  expect_error(xx ^ xx, "non-numeric argument to binary operator")
+  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
+  #       is because of how `^` is defined separately from the other Ops.
+    expect_error(xx ^ xx, "non-numeric argument to binary operator")
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

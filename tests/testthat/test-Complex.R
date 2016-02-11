@@ -1,12 +1,13 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Complex
 ###
+### NOTE: DSArray won't support complex arrays until data.table can support
+###       complex keys. So these tests are just to see if anything has changed
+###       in that regard.
 
 context("Complex group generic")
 
 test_that("data.table supports complex keys", {
-  # NOTE: DSArray won't support complex arrays until data.table can support
-  #       complex keys.
           expect_error(setkey(data.table(x = 3 + 1i), x),
                        paste0("Column 'x' is type 'complex' which is not ",
                               "supported as a key column type, currently."))
