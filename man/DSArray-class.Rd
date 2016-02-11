@@ -106,6 +106,15 @@ since these rows need not be explicitly stored in \code{slot(dsa, "val")}.
 \strong{TODO: explicit formula for decrease in memory as a function of
 \code{nrow{x}}, \code{ncol(x)}, and \code{sum(duplicated(x))}}.
 }
+
+\section{Supportyed Types}{
+
+R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
+\code{\link[base]{double}} (often called \code{\link[base]{numeric}}),
+\code{\link[base]{character}}, \code{\link[base]{complex}}, and
+\code{\link[base]{raw}} arrays. The DSArray class currently supports all
+these types except \code{\link[base]{complex}} and \code{\link[base]{raw}}.
+}
 \seealso{
 \code{\link{DSArray}}
 }

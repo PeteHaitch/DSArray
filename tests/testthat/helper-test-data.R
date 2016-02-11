@@ -1,4 +1,11 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Packages used in tests
+###
+
+library(data.table)
+library(SummarizedExperiment)
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Data used in tests
 ###
 
@@ -22,7 +29,6 @@ z <- array(c(1, 3, 5, 4, 6, 1, 2, 9, 11, 4, 6, 2),
            dimnames = list(c("a", "b", "c"), c("y", "z"), c("A", "B")))
 zz <- DSArray(z, 2)
 
-library(SummarizedExperiment)
 se <- SummarizedExperiment(z)
 se2 <- SummarizedExperiment(zz)
 

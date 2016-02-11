@@ -53,6 +53,13 @@
 #' \strong{TODO: explicit formula for decrease in memory as a function of
 #' \code{nrow{x}}, \code{ncol(x)}, and \code{sum(duplicated(x))}}.
 #'
+#' @section Supportyed Types:
+#' R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
+#' \code{\link[base]{double}} (often called \code{\link[base]{numeric}}),
+#' \code{\link[base]{character}}, \code{\link[base]{complex}}, and
+#' \code{\link[base]{raw}} arrays. The DSArray class currently supports all
+#' these types except \code{\link[base]{complex}} and \code{\link[base]{raw}}.
+#'
 #' @slot key An integer matrix where the \eqn{(i, j)}-entry of the \code{key}
 #' corresponds to the \eqn{i^{th}} row and \eqn{j^{th}} column of the original
 #' 3-dimensional "dense" array.
@@ -91,6 +98,9 @@ setClass("DSArray",
   if (!is.matrix(slot(x, "val"))) {
     return(paste0("'val' slot of a ", class(x), " must be a matrix"))
   }
+  if (is.complex(slot(x, "val"))) {
+    return("'complex' arrays not currently supported")
+  }
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,6 +133,9 @@ setClass("DSArray",
 #' @export
 setMethod("DSArray", "matrix",
           function(x, dimnames = NULL) {
+            if (is.complex(x)) {
+              stop("'complex' arrays not yet supported")
+            }
             dsa <- .sparsify(x)
             if (is.null(dimnames)) {
               dimnames <- dimnames(x)
@@ -165,12 +178,21 @@ setMethod("DSArray", "list",
           function(x, dimnames = NULL) {
             stopifnot(length(x) > 0)
             cl <- vapply(x, class, character(1L))
+            if (!isTRUE(all(cl == "matrix"))) {
+              stop("All elements of 'x' must be matrix objects")
+            }
             stopifnot(all(cl == "matrix"))
+            is_complex <- vapply(x, is.complex, logical(1L))
+            if (isTRUE(any(is_complex))) {
+              stop("'complex' arrays not yet supported")
+            }
             d <- lapply(x, dim)
             ok_dim <- vapply(d, function(d, d1) {
               isTRUE(all(d == d1))
             }, d1 = d[[1]], logical(1))
-            stopifnot(all(ok_dim))
+            if (!isTRUE(all(ok_dim))) {
+              stop("All elements of 'x' must have same dimensions")
+            }
             x_matrix <- do.call("rbind", x)
             sparsified <- .sparsify(x_matrix)
             dim(slot(sparsified, "key")) <- list(d[[1L]][[1L]], length(d))
@@ -199,6 +221,9 @@ setMethod("DSArray", "list",
 #' @export
 setMethod("DSArray", "array",
           function(x, MARGIN = 2L, dimnames = NULL) {
+            if (is.complex(x)) {
+              stop("'complex' arrays not yet supported")
+            }
             d <- dim(x)
             n <- length(d)
             # NOTE: Special case for when the array is really a matrix
