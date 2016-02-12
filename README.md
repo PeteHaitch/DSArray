@@ -7,8 +7,6 @@
 
 ---
 
-DSArray: compressed storage of 3-dimensional arrays with many duplicate slices.
-
 DSArray ("_desiree_") provides efficient storage of 3-dimensional arrays with 
 many duplicate slices via the DSArray (**D**uplicate **S**lice **Array**) S4 
 class. A basic array-like API is provided for instantiating, subsetting, and 
