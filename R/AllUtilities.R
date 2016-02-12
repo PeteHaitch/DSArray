@@ -170,8 +170,8 @@ setMethod(".sparsify", "data.frame",
 #       call .densify(x, simplify = simplify, warn = FALSE).
 .densify <- function(x, simplify = TRUE, warn = TRUE) {
   if (warn) {
-    warning(paste0("Densifying 'x'. This can cause a large increase ",
-                   "in memory usage."), call. = FALSE, immediate. = TRUE)
+    warning(paste0("Densifying. This can cause a large increase ",
+                   "in memory usage"), call. = FALSE, immediate. = TRUE)
   }
   l <- lapply(seq_len(ncol(slot(x, "key"))), function(ii) {
     m <- slot(x, "val")[slot(x, "key")[, ii], , drop = FALSE]

@@ -91,12 +91,12 @@ test_that("DSArray,cum* ops work", {
   expect_identical(suppressWarnings(cumsum(-1 * xx)), cumsum(-1 * x))
   expect_identical(suppressWarnings(cumsum(-1 * xx * 0.666)),
                    cumsum(-1 * x * 0.666))
-  expect_warning(cummax(xx), paste0("Densifying 'x'. This can cause a large ",
-                                    "increase in memory usage."))
-  expect_warning(cummin(xx), paste0("Densifying 'x'. This can cause a large ",
-                                    "increase in memory usage."))
-  expect_warning(cumprod(xx), paste0("Densifying 'x'. This can cause a large ",
-                                    "increase in memory usage."))
-  expect_warning(cumsum(xx), paste0("Densifying 'x'. This can cause a large ",
-                                    "increase in memory usage."))
+  expect_warning(cummax(xx), paste0("Densifying. This can cause a large ",
+                                    "increase in memory usage"))
+  expect_warning(cummin(xx), paste0("Densifying. This can cause a large ",
+                                    "increase in memory usage"))
+  expect_warning(cumprod(xx), paste0("Densifying. This can cause a large ",
+                                    "increase in memory usage"))
+  expect_warning(cumsum(xx), paste0("Densifying. This can cause a large ",
+                                    "increase in memory usage"))
 })

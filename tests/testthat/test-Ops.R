@@ -5,54 +5,71 @@
 
 context("Arith group generic")
 
-test_that("c(\"DSarray\", \"vector\") signature works", {
-  ops <- c(`+`, `-`, `*`, `%%`, `%/%`, `/`)
+test_that("Arith,DSarray,vector-method works", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx, 3), op(x, 3)))
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
-  #       is because of how `^` is defined separately from the other Ops.
-  expect_true(dsa_identical_to_array(xx ^ 3, x ^ 3))
 })
 
-test_that("c(\"vector\", \"DSArray\") signature works", {
-  ops <- c(`+`, `-`, `*`, `%%`, `%/%`, `/`)
+test_that("Arith,DSarray,vector-method warns of densifying if length(e2) > 1", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
+  lapply(ops, function(op) {
+    expect_warning(op(xx, seq_along(xx)),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
+                                       suppressWarnings(op(x, seq_along(x)))))
+    expect_warning(op(xx, 1:10),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(xx, 1:10),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
+                                       suppressWarnings(op(x, 1:10))))
+  })
+})
+
+test_that("Arith,vector,DSarray-method works", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
+  lapply(ops, function(op) {
+    expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
+    expect_true(dsa_identical_to_array(op(3, zz), op(3, z)))
+  })
+})
+
+test_that("Arith,DSarray,vector-method warns if length(e2) > 1", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
+  lapply(ops, function(op) {
+    expect_warning(op(seq_along(xx), xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
+                                       suppressWarnings(op(seq_along(x), x))))
+    expect_warning(op(1:10, xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(1:10, xx),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
+                                       suppressWarnings(op(1:10, x))))
+  })
+})
+
+test_that("Arith,vector,DSArray-method signature works", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
-  #       is because of how `^` is defined separately from the other Ops.
-  expect_true(dsa_identical_to_array(3 ^ xx, 3 ^ x))
 })
 
-test_that("Only 'scalar' Arith ops are currently implemented", {
-  ops <- c(`+`, `-`, `*`, `%%`, `%/%`, `/`)
-  lapply(ops, function(op) {
-    expect_error(op(xx, 1:10),
-                 paste0("length\\(e2\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
-    expect_error(op(1:10, xx),
-                 paste0("length\\(e1\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
-  })
-  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
-  #       is because of how `^` is defined separately from the other Ops.
-  expect_error(xx ^ (1:10),
-               paste0("length\\(e2\\) > 1 behaviour is complicated and not ",
-                      "yet implemented"))
-  expect_error((1:10) ^ xx,
-               paste0("length\\(e1\\) > 1 behaviour is complicated and not ",
-                      "yet implemented"))
-})
-
-test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
-  ops <- c(`+`, `-`, `*`, `%%`, `%/%`, `/`)
+test_that("Arith,DSArray,DSArray-method signature not yet implemented", {
+  ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
   lapply(ops, function(op) {
     expect_error(op(xx, xx), "non-numeric argument to binary operator")
   })
-  # NOTE: For some reason the above strategy doesn't work for `^`. I think it
-  #       is because of how `^` is defined separately from the other Ops.
-    expect_error(xx ^ xx, "non-numeric argument to binary operator")
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,7 +78,7 @@ test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
 
 context("Compare group generic")
 
-test_that("c(\"DSarray\", \"vector\") signature works", {
+test_that("Compare,DSarray,vector-method works", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx, 3), op(x, 3)))
@@ -70,7 +87,26 @@ test_that("c(\"DSarray\", \"vector\") signature works", {
   })
 })
 
-test_that("c(\"vector\", \"DSArray\") signature works", {
+test_that("Compare,DSarray,vector-method warns of densifying if length(e2) > 1", {
+  ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
+  lapply(ops, function(op) {
+    expect_warning(op(xx, seq_along(xx)),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
+                                       suppressWarnings(op(x, seq_along(x)))))
+    expect_warning(op(xx, 1:10),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(xx, 1:10),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
+                                       suppressWarnings(op(x, 1:10))))
+  })
+})
+
+test_that("Compare,vector,DSArray-method works", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
@@ -79,19 +115,26 @@ test_that("c(\"vector\", \"DSArray\") signature works", {
   })
 })
 
-test_that("Only scalar Compare ops are currently implemented", {
+test_that("Compare,DSarray,vector-method warns if length(e2) > 1", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
-    expect_error(op(xx, 1:10),
-                 paste0("length\\(e2\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
-    expect_error(op(1:10, xx),
-                 paste0("length\\(e1\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
+    expect_warning(op(seq_along(xx), xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
+                                       suppressWarnings(op(seq_along(x), x))))
+    expect_warning(op(1:10, xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(1:10, xx),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
+                                       suppressWarnings(op(1:10, x))))
   })
 })
 
-test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
+test_that("Compare,DSArray,DSArrayn-method not yet implemented", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
     expect_error(op(xx, xx),
@@ -106,7 +149,7 @@ test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
 
 context("Logic group generic")
 
-test_that("c(\"DSarray\", \"vector\") signature works", {
+test_that("Logic,DSarraymvector-method works", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx, 3), op(x, 3)))
@@ -117,7 +160,26 @@ test_that("c(\"DSarray\", \"vector\") signature works", {
   })
 })
 
-test_that("c(\"vector\", \"DSArray\") signature works", {
+test_that("Logic,DSarray,vector-method warns of densifying if length(e2) > 1", {
+  ops <- c(`&`, `|`)
+  lapply(ops, function(op) {
+    expect_warning(op(xx, seq_along(xx)),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
+                                       suppressWarnings(op(x, seq_along(x)))))
+    expect_warning(op(xx, 1:10),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(xx, 1:10),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
+                                       suppressWarnings(op(x, 1:10))))
+  })
+})
+
+test_that("Logic,vector,DSArray-method works", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
@@ -128,19 +190,27 @@ test_that("c(\"vector\", \"DSArray\") signature works", {
   })
 })
 
-test_that("Only scalar Logic ops are currently implemented", {
+test_that("Logic,DSarray,vector-method warns if length(e2) > 1", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
-    expect_error(op(xx, 1:10),
-                 paste0("length\\(e2\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
-    expect_error(op(1:10, xx),
-                 paste0("length\\(e1\\) > 1 behaviour is complicated and not ",
-                        "yet implemented"))
+    expect_warning(op(seq_along(xx), xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
+                                       suppressWarnings(op(seq_along(x), x))))
+    expect_warning(op(1:10, xx),
+                   paste0("Densifying. This can cause a large increase in ",
+                          "memory usage"))
+    expect_warning(op(1:10, xx),
+                   paste0("longer object length is not a multiple of shorter ",
+                          "object length"))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
+                                       suppressWarnings(op(1:10, x))))
   })
 })
 
-test_that("c(\"DSArray\", \"DSArray\") signature not yet implemented", {
+
+test_that("Logic,DSArray,DSArray-method not yet implemented", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
     expect_error(op(xx, xx),
