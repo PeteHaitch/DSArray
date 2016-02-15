@@ -40,22 +40,6 @@ setMethod(".sparsify", "data.table",
             } else {
               rownames(val) <- NULL
             }
-            # Handle the NA-row
-            NA_idx <- which(rowSums(is.na(val)) == ncol(val))
-            if (length(NA_idx)) {
-              # Take care of NA rows
-              stopifnot(length(NA_idx) == 1L)
-              # Update val element by dropping NA row
-              val <- val[-NA_idx, , drop = FALSE]
-              # Update key element to replace index by NA for NA rows
-              # TODO (longterm): Probably more efficient ways to do this
-              if (!is.null(names(key))) {
-                names(key)[key == NA_idx] <- NA
-              }
-              key[key == NA_idx] <- NA
-              key[!is.na(key) & key > NA_idx] <-
-                key[!is.na(key) & key > NA_idx] - 1L
-            }
             # Return the result
             new("DSArray", key = as.matrix(key), val = val)
           }

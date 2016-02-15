@@ -100,11 +100,9 @@ As noted above, the DSArray representation of \code{x} is only worthwhile if
 \code{x} contains many duplicate \code{(i,j)}-slices since this ensures
 that \code{nrow(val)} is much smaller than \code{nrow(x)}. Furthermore, the
 DSArray representation of \code{x} becomes proportionally more efficient as
-the number of slices (\code{dim(x)[3]}) increases. The DSArray
-representation is especially efficient if many of these slices are \code{NA}
-since these rows need not be explicitly stored in \code{slot(dsa, "val")}.
-\strong{TODO: explicit formula for decrease in memory as a function of
-\code{nrow{x}}, \code{ncol(x)}, and \code{sum(duplicated(x))}}.
+the number of slices (\code{dim(x)[3]}) increases. \strong{TODO: explicit
+formula for decrease in memory as a function of \code{nrow{x}},
+\code{ncol(x)}, and \code{sum(duplicated(x))}}.
 }
 
 \section{Supportyed Types}{
