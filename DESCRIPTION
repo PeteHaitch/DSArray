@@ -15,7 +15,8 @@ Depends:
 Imports:
     BiocGenerics,
     data.table,
-    methods
+    methods,
+    S4Vectors
 Suggests:
     knitr,
     rmarkdown,

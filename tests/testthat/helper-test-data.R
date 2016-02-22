@@ -2,8 +2,8 @@
 ### Packages used in tests
 ###
 
-library(data.table)
 library(SummarizedExperiment)
+library(data.table)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Data used in tests
@@ -31,6 +31,24 @@ zz <- DSArray(z, 2)
 
 se <- SummarizedExperiment(z)
 se2 <- SummarizedExperiment(zz)
+
+f <- function(nr = 100, nc = 4, ns = 8, p = 0.6) {
+  n <- nr * nc * ns
+  a <- array(NA_integer_,
+             dim = c(nr, nc, ns),
+             dimnames = list(seq_len(nr),
+                             letters[seq_len(nc)],
+                             LETTERS[seq_len(ns)]))
+  i <- sample(nr, p * nr * nc, replace = TRUE)
+  j <- sample(nc, p * nr * nc, replace = TRUE)
+  y <- split(rpois(ns * length(i), 3), seq_along(i))
+  for (idx in seq_along(i)) {
+    a[i[idx], j[idx], ] <- y[[idx]]
+  }
+  a
+}
+x <- f()
+xx <- DSArray(x)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Helper functions

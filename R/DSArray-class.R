@@ -79,11 +79,21 @@ setClass("DSArray",
 ### Validity
 ###
 
+# TODO: Note that the maximum nrow is .Machine$integer.max. While it's pretty
+#       simply to support objects with more rows, I want to ensure that
+#       whenever possible the 'key' slot has storage.mode() 'integer' to save
+#       space. If I allow 'key' slot to have storage.mode() 'double' then I
+#       still need to ensure that these are "integer-like", i.e., positive
+#       whole numbers.
 .valid.DSArray.key <- function(x) {
-  if (!is.matrix(slot(x, "key")) ||
-      isTRUE(any(slot(x, "key"), na.rm = TRUE) < 0)) {
-    return(paste0("'key' slot of a ", class(x), " must be a matrix of ",
-                  "positive integers (NAs permitted)"))
+  msg <- paste0("'key' slot of a ", class(x), " must be a matrix of ",
+                "positive integers (NAs not permitted)")
+  if (!is.matrix(slot(x, "key")) | !is.integer(slot(x, "key"))) {
+    return(msg)
+  }
+  min_key <- min(slot(x, "key"))
+  if (is.na(min_key) | (min_key < 0)) {
+    return(msg)
   }
   col_max <- apply(slot(x, "key"), 1, max)
   if (isTRUE(any(slot(x, "key") > nrow(slot(x, "val")), na.rm = TRUE))) {
@@ -101,19 +111,48 @@ setClass("DSArray",
   }
 }
 
+.valid.DSArray <- function(x) {
+  c(.valid.DSArray.key(x),
+    .valid.DSArray.val(x))
+}
+
+#' @importFrom S4Vectors setValidity2
+setValidity2("DSArray", .valid.DSArray)
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
 ###
 
+# TODO (longterm): It might be useful to have
+#                  DSArray(dim = dim, dimnames = dimnames) to be able to
+#                  construct a DSArray object with given dimensions and names
+#                  and all data set to NA (like
+#                  array(dim = dim, dimnames = dimnames) does).
+#' @rdname DSArray
+#' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
+#' \link[base]{matrix} objects with identical dimensions, or a
+#' \link[base]{matrix}.
+#' @importFrom methods setMethod
+#'
+#' @export
+setMethod("DSArray", "missing",
+          function(x) {
+            DSArray(matrix())
+          }
+)
+
+# TODO: Document how dimnames are constructed; e.g., note that
+#       DSArray,method-method will have colnames set to NULL if the input
+#       matrix has dimnames.
+# TODO: Document that DSArray() is to new("DSArray") what array() is to
+#       new("array").
 #' DSArray constructor
 #'
 #' Construct a \link[=DSArray-class]{DSArray} from a 3-dimensional
 #' \link[base]{array}, a \link[base]{matrix}, or a \link[base]{list} of
 #' \link[base]{matrix} objects with identical dimensions.
 #'
-#' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
-#' \link[base]{matrix} objects with identical dimensions, or a
-#' \link[base]{matrix}.
+#' @inheritParams DSArray,missing-method
 #' @param dimnames A \link[base]{dimnames} attribute for the DSArray: NULL or
 #' a list of length 3. An empty list is treated as \code{NULL}, a list of
 #' length one as row names, and a list of length two as row names and column
@@ -138,25 +177,8 @@ setMethod("DSArray", "matrix",
             if (is.null(dimnames)) {
               dimnames <- dimnames(x)
               dimnames <- list(dimnames[[1L]], NULL, dimnames[[2L]])
-            }
-            dimnames(dsa) <- dimnames
-            dsa
-          }
-)
-
-# NOTE: DSArray() is to new("DSArray") what array() is to new("array").
-#' @rdname DSArray
-#' @inheritParams DSArray,matrix-method
-#' @importFrom methods setMethod
-#'
-#' @export
-setMethod("DSArray", "missing",
-          function(x, dimnames = NULL) {
-            x <- matrix()
-            dsa <- DSArray(x)
-            if (is.null(dimnames)) {
-              dimnames <- dimnames(x)
-              dimnames <- list(dimnames[[1L]], NULL, dimnames[[2L]])
+            } else if (length(dimnames) != 3L) {
+              stop("supplied 'dimnames' must have length 3")
             }
             dimnames(dsa) <- dimnames
             dsa
@@ -203,6 +225,8 @@ setMethod("DSArray", "list",
               d3n <- lapply(dimnames, "[[", 2L)
               d3n <- d3n[[which.max(!vapply(d3n, is.null, logical(1L)))]]
               dimnames <- list(rn, cn, d3n)
+            } else if (length(dimnames) != 3L) {
+              stop("supplied 'dimnames' must have length 3")
             }
             dimnames(dsa) <- dimnames
             dsa
@@ -487,6 +511,7 @@ setMethod("[", "DSArray",
 
 ### [<-
 
+# TODO: What if value is an array not a DSArray?
 # NOTE: Like [<-,matrix-method, the original dimnames of x are preserved.
 #' @importFrom methods slot slot<-
 .replace_DSArray_subset <- function(x, i, j, k, value) {
@@ -512,7 +537,9 @@ setMethod("[", "DSArray",
     } else {
       slot(x, "val")[ii, k] <- slot(value, "val")
     }
-    # TODO: This works but expands data; can we avoid this expansion?
+    # TODO: This works but expands data; can we avoid this expansion? Could
+    #       perhaps match rows of x@val and rows of value@val, rbind x@val and
+    #       value@val, and update x@key?
     sparsified <- .sparsify(slot(x, "val")[slot(x, "key"), , drop = FALSE])
     dim(slot(sparsified, "key")) <- dim(slot(x, "key"))
     sparsified

@@ -15,9 +15,9 @@ test_that("DSArray,Math ops that don't produce any warnings work", {
     expect_true(dsa_identical_to_array(op(-1 * xx * 0.666), op(-1 * x * 0.666)))
   })
 })
+
 test_that("DSArray,Math ops that produce warnings on negative input work", {
-  ops <- c(`sqrt`, `log`, `log10`, `log2`, `log1p`, `lgamma`,
-           `digamma`)
+  ops <- c(`sqrt`, `log`, `log10`, `log2`, `log1p`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx), op(x)))
     expect_true(dsa_identical_to_array(op(xx * 0.666), op(x * 0.666)))
@@ -29,10 +29,26 @@ test_that("DSArray,Math ops that produce warnings on negative input work", {
   })
 })
 
+test_that("DSArray,Math ops that produce warnings on input outside of (0, Inf) work", {
+  ops <- c(`lgamma`, `digamma`)
+  lapply(ops, function(op) {
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx)),
+                                       suppressWarnings(op(x))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx * 0.666)),
+                                       suppressWarnings(op(x * 0.666))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(-1 * xx)),
+                                       suppressWarnings(op(-1 * x))))
+    expect_warning(op(xx), "[NaNs produced | value out of range]")
+    expect_warning(op(xx * 0.666), "[NaNs produced | value out of range]")
+    expect_warning(op(-1 * xx), "[NaNs produced | value out of range]")
+  })
+})
+
 test_that("DSArray,Math ops that produce warnings on input outside of [1, Inf) work", {
   ops <- c(`acosh`)
   lapply(ops, function(op) {
-    expect_true(dsa_identical_to_array(op(xx), op(x)))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx)),
+                                       suppressWarnings(op(x))))
     expect_true(dsa_identical_to_array(suppressWarnings(op(xx * 0.666)),
                                        suppressWarnings(op(x * 0.666))))
     expect_true(dsa_identical_to_array(suppressWarnings(op(-1 * xx)),
@@ -41,7 +57,6 @@ test_that("DSArray,Math ops that produce warnings on input outside of [1, Inf) w
     expect_warning(op(-1 * xx), "[NaNs produced | value out of range]")
   })
 })
-
 
 test_that("DSArray,Math ops that produce warnings on input outside of [-1, 1] work", {
   ops <- c(`acos`, `asin`, `atanh`)
@@ -55,14 +70,15 @@ test_that("DSArray,Math ops that produce warnings on input outside of [-1, 1] wo
   })
 })
 
-test_that("DSArray,Math ops that produce warnings on negative input and on large-ish positive input work", {
+test_that("DSArray,Math ops that produce warnings on non-positive input and on large-ish positive input work", {
   ops <- c(`gamma`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(suppressWarnings(op(xx)),
                                        suppressWarnings(op(x))))
-    expect_warning(op(xx), "value out of range in 'gammafn'")
+    expect_warning(op(1000 * xx), "value out of range in 'gammafn'")
     expect_true(dsa_identical_to_array(suppressWarnings(op(-1 * xx)),
                                        suppressWarnings(op(-1 * x))))
+    expect_warning(op(xx), "NaNs produced")
     expect_warning(op(-1 * xx), "NaNs produced")
   })
 })

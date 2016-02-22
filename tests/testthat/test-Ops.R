@@ -1,4 +1,3 @@
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Arith
 ###
@@ -20,14 +19,14 @@ test_that("Arith,DSarray,vector-method warns of densifying if length(e2) > 1", {
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
                                        suppressWarnings(op(x, seq_along(x)))))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
-                                       suppressWarnings(op(x, 1:10))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:7)),
+                                       suppressWarnings(op(x, 1:7))))
   })
 })
 
@@ -47,14 +46,14 @@ test_that("Arith,DSarray,vector-method warns if length(e2) > 1", {
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
                                        suppressWarnings(op(seq_along(x), x))))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
-                                       suppressWarnings(op(1:10, x))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:7, xx)),
+                                       suppressWarnings(op(1:7, x))))
   })
 })
 
@@ -95,14 +94,14 @@ test_that("Compare,DSarray,vector-method warns of densifying if length(e2) > 1",
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
                                        suppressWarnings(op(x, seq_along(x)))))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
-                                       suppressWarnings(op(x, 1:10))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:7)),
+                                       suppressWarnings(op(x, 1:7))))
   })
 })
 
@@ -123,14 +122,14 @@ test_that("Compare,DSarray,vector-method warns if length(e2) > 1", {
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
                                        suppressWarnings(op(seq_along(x), x))))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
-                                       suppressWarnings(op(1:10, x))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:7, xx)),
+                                       suppressWarnings(op(1:7, x))))
   })
 })
 
@@ -168,14 +167,14 @@ test_that("Logic,DSarray,vector-method warns of densifying if length(e2) > 1", {
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(xx, seq_along(xx))),
                                        suppressWarnings(op(x, seq_along(x)))))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(xx, 1:10),
+    expect_warning(op(xx, 1:7),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:10)),
-                                       suppressWarnings(op(x, 1:10))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(xx, 1:7)),
+                                       suppressWarnings(op(x, 1:7))))
   })
 })
 
@@ -198,14 +197,14 @@ test_that("Logic,DSarray,vector-method warns if length(e2) > 1", {
                           "memory usage"))
     expect_true(dsa_identical_to_array(suppressWarnings(op(seq_along(xx), xx)),
                                        suppressWarnings(op(seq_along(x), x))))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("Densifying. This can cause a large increase in ",
                           "memory usage"))
-    expect_warning(op(1:10, xx),
+    expect_warning(op(1:7, xx),
                    paste0("longer object length is not a multiple of shorter ",
                           "object length"))
-    expect_true(dsa_identical_to_array(suppressWarnings(op(1:10, xx)),
-                                       suppressWarnings(op(1:10, x))))
+    expect_true(dsa_identical_to_array(suppressWarnings(op(1:7, xx)),
+                                       suppressWarnings(op(1:7, x))))
   })
 })
 

@@ -9,3 +9,7 @@
 There are probably many more.
 
 - [ ] How to find list of these?
+
+Package dependencies
+
+- [ ] Having SummarizedExperiment in Suggests greatly increases build times on Travis due to its many dependencies (and their dependencies)
