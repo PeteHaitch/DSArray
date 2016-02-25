@@ -128,18 +128,6 @@ setValidity2("DSArray", .valid.DSArray)
 #                  construct a DSArray object with given dimensions and names
 #                  and all data set to NA (like
 #                  array(dim = dim, dimnames = dimnames) does).
-#' @rdname DSArray
-#' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
-#' \link[base]{matrix} objects with identical dimensions, or a
-#' \link[base]{matrix}.
-#' @importFrom methods setMethod
-#'
-#' @export
-setMethod("DSArray", "missing",
-          function(x) {
-            DSArray(matrix())
-          }
-)
 
 # TODO: Document how dimnames are constructed; e.g., note that
 #       DSArray,method-method will have colnames set to NULL if the input
@@ -152,7 +140,9 @@ setMethod("DSArray", "missing",
 #' \link[base]{array}, a \link[base]{matrix}, or a \link[base]{list} of
 #' \link[base]{matrix} objects with identical dimensions.
 #'
-#' @inheritParams DSArray,missing-method
+#' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
+#' \link[base]{matrix} objects with identical dimensions, or a
+#' \link[base]{matrix}.
 #' @param dimnames A \link[base]{dimnames} attribute for the DSArray: NULL or
 #' a list of length 3. An empty list is treated as \code{NULL}, a list of
 #' length one as row names, and a list of length two as row names and column
@@ -248,11 +238,6 @@ setMethod("DSArray", "array",
             }
             d <- dim(x)
             n <- length(d)
-            # NOTE: Special case for when the array is really a matrix
-            #       (although not classed as such).
-            if (n == 2L) {
-              DSArray(as.matrix(x), dimnames = dimnames)
-            }
             if (n != 3L) {
               stop("array must have 3 dimensions")
             }
@@ -292,15 +277,11 @@ setMethod("DSArray", "array",
 #' @export
 setMethod("dim", "DSArray",
   function(x) {
-    if (identical(slot(x, "key"), matrix())) {
-      c(0L, 0L, 0L)
-    } else {
-      c(dim(slot(x, "key")), ncol(slot(x, "val")))
-    }
+    c(dim(slot(x, "key")), ncol(slot(x, "val")))
   }
 )
 
-### ncslice
+### nslice
 
 #' @rdname DSArray-class
 #' @inheritParams dim,DSArray-method
@@ -473,18 +454,17 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
     # NOTE: By working with only the unique rows of ii we avoid some
     #       unnecessary expansions of the val slot at the expense of some
     #       fiddly bookkeeping to update the key of the new DSArray.
-    unq_ii <- unique(ii, MARGIN = 1)
+    unq_ii <- unique(as.vector(ii))
     if (missing(k)) {
-      new_val <- slot(x, "val")[unq_ii, , drop = FALSE]
+      unq_val <- slot(x, "val")[unq_ii, , drop = FALSE]
     } else {
-      new_val <- slot(x, "val")[unq_ii, k, drop = FALSE]
+      unq_val <- slot(x, "val")[unq_ii, k, drop = FALSE]
     }
-    sparsified <- .sparsify(new_val)
+    sparsified <- .sparsify(unq_val)
+    new_val <- slot(sparsified, "val")
     # Re-map slot(sparsified, "key") via ii to create new_key
     ii_dt <- data.table(ii = as.vector(ii))
-    # NOTE: Need to sort unq_ii as the rows in slot(sparsified, "val") have
-    #       been sorted by the call to .sparsify().
-    key_map <- data.table(ii = sort(unq_ii),
+    key_map <- data.table(ii = unq_ii,
                           sp_key = as.vector(slot(sparsified, "key")))
     new_key <- key_map[ii_dt, on = "ii"][, sp_key]
     # Re-dimension new_key to be a matrix with the appropriate dimensions
