@@ -169,25 +169,286 @@ context("[,DSArray,ANY-method")
 #   })
 # })
 
-test_that("subsetting by i works on a one-column DSArray", {
-  i <- list(1, 1:10, sample(nrow(x)), rep(1:10, 10))
+test_that("drop is ignored in [,DSArray-metho", {
+  msg <- "'drop' ignored '\\[,DSArray,ANY-method'"
+  expect_warning(xx[1:10, , , drop = TRUE], msg)
+  expect_warning(.extract_DSArray_subset(x = xx, i = 1:10, drop = TRUE), msg)
+})
+
+test_that("subsetting a DSArray by i works or errors on bad input", {
+  i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
   lapply(i, function(ii) {
     expect_true(dsa_identical_to_array(xx[ii, , ], x[ii, , , drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(xx, ii), xx[ii, , ])
+    expect_identical(.extract_DSArray_subset(x = xx, i = ii), xx[ii, , ])
     expect_true(dsa_identical_to_array(xx[as.character(ii), , ],
                                        x[as.character(ii), , , drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(xx, as.character(ii)),
+    expect_identical(.extract_DSArray_subset(x = xx, i = as.character(ii)),
                      xx[as.character(ii), , ])
 
   })
-  i_bad <- list(nrow(x) + 1, 1:(nrow(x) + 1))
+  i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
   msg <- "subscript i out of bounds"
   lapply(i_bad, function(ii) {
     expect_error(xx[ii, , ], msg)
-    expect_error(.extract_DSArray_subset(xx, ii), msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii), msg)
     expect_error(xx[as.character(ii), , ], msg)
-    expect_error(.extract_DSArray_subset(xx, as.character(ii)), msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii)), msg)
   })
 })
 
-# UP TO HERE: subsetting by j, (i, j), (i, k), (j, k), (i, j, k), ()
+test_that("subsetting a DSArray by j works or errors on bad input", {
+  j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
+  lapply(j, function(jj) {
+    expect_true(dsa_identical_to_array(xx[, jj, ], x[, jj, , drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, j = jj), xx[, jj, ])
+    expect_true(dsa_identical_to_array(xx[, letters[jj] , ],
+                                       x[, letters[jj], , drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, j = letters[jj]),
+                     xx[, letters[jj], , ])
+
+  })
+  j_bad <- list(ncol(xx) + 1, 1:(ncol(x) + 1))
+  msg <- "subscript j out of bounds"
+  lapply(j_bad, function(jj) {
+    expect_error(xx[, jj, , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = jj), msg)
+    expect_error(xx[, letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = letters[jj]), msg)
+  })
+})
+
+test_that("subsetting a DSArray by k works or errors on bad input", {
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  lapply(k, function(kk) {
+    expect_true(dsa_identical_to_array(xx[, , kk], x[, , kk, drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, k = kk), xx[, , kk])
+    expect_true(dsa_identical_to_array(xx[, , LETTERS[kk]],
+                                       x[, , LETTERS[kk], drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, k = LETTERS[kk]),
+                     xx[, , LETTERS[kk], ])
+
+  })
+  k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
+  msg <- "subscript k out of bounds"
+  lapply(k_bad, function(kk) {
+    expect_error(xx[, , kk], msg)
+    expect_error(.extract_DSArray_subset(x = xx, k = kk), msg)
+    expect_error(xx[, , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, k = letters[kk]), msg)
+  })
+})
+
+test_that("subsetting a DSArray by (i, j) works or errors on bad input", {
+  i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
+  j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
+  Map(function(ii, jj) {
+    expect_true(dsa_identical_to_array(xx[ii, jj, ], x[ii, jj, , drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = ii, j = jj), xx[ii, jj, ])
+    expect_true(dsa_identical_to_array(xx[as.character(ii), letters[jj], ],
+                                       x[as.character(ii), letters[jj], ,
+                                         drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+                                             j = letters[jj]),
+                     xx[as.character(ii), letters[jj], , ])
+  }, ii = i, jj = j)
+  i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
+  j_bad <- list(ncol(xx) + 1, 1:(ncol(xx) + 1))
+  msg <- "subscript j out of bounds"
+  Map(function(ii, jj) {
+    expect_error(xx[ii, jj, , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
+    expect_error(xx[as.character(ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj]), msg)
+  }, ii = i, jj = j_bad)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj) {
+    expect_error(xx[ii, jj, , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
+    expect_error(xx[as.character(ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj]), msg)
+  }, ii = i_bad, jj = j)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj) {
+    expect_error(xx[ii, jj, , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
+    expect_error(xx[as.character(ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj]), msg)
+  }, ii = i_bad, jj = j_bad)
+})
+
+test_that("subsetting a DSArray by (i, k) works or errors on bad input", {
+  i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  Map(function(ii, kk) {
+    expect_true(dsa_identical_to_array(xx[ii, , kk], x[ii, , kk, drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = ii, k = kk), xx[ii, , kk])
+    expect_true(dsa_identical_to_array(xx[as.character(ii), , LETTERS[kk]],
+                                       x[as.character(ii), , LETTERS[kk],
+                                         drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+                                             k = LETTERS[kk]),
+                     xx[as.character(ii), , LETTERS[kk], ])
+  }, ii = i, kk = k)
+  i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
+  k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
+  msg <- "subscript k out of bounds"
+  Map(function(ii, kk) {
+    expect_error(xx[ii, , kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
+    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         k = LETTERS[kk]), msg)
+  }, ii = i, kk = k_bad)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, kk) {
+    expect_error(xx[ii, , kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
+    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         k = LETTERS[kk]), msg)
+  }, ii = i_bad, kk = k)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, kk) {
+    expect_error(xx[ii, , kk], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
+    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         k = LETTERS[kk]), msg)
+  }, ii = i_bad, kk = k_bad)
+})
+
+test_that("subsetting a DSArray by (j, k) works or errors on bad input", {
+  j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  Map(function(jj, kk) {
+    expect_true(dsa_identical_to_array(xx[, jj, kk], x[, jj, kk, drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, j = jj, k = kk), xx[, jj, kk])
+    expect_true(dsa_identical_to_array(xx[, letters[jj], LETTERS[kk]],
+                                       x[, letters[jj], LETTERS[kk],
+                                         drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, j = letters[jj],
+                                             k = LETTERS[kk]),
+                     xx[, letters[jj], LETTERS[kk], ])
+  }, jj = j, kk = k)
+  j_bad <- list(ncol(xx) + 1, 1:(ncol(x) + 1))
+  k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
+  msg <- "subscript k out of bounds"
+  Map(function(jj, kk) {
+    expect_error(xx[, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = jj, k = kk), msg)
+    expect_error(xx[, letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = letters[jj],
+                                         k = LETTERS[kk]), msg)
+  }, jj = j, kk = k_bad)
+  msg <- "subscript j out of bounds"
+  Map(function(jj, kk) {
+    expect_error(xx[, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = jj, k = kk), msg)
+    expect_error(xx[, letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = letters[jj],
+                                         k = LETTERS[kk]), msg)
+  }, jj = j_bad, kk = k)
+  msg <- "subscript j out of bounds"
+  Map(function(jj, kk) {
+    expect_error(xx[, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = jj, k = kk), msg)
+    expect_error(xx[, letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, j = letters[jj],
+                                         k = LETTERS[kk]), msg)
+  }, jj = j_bad, kk = k_bad)
+})
+
+test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
+  i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
+  j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  Map(function(ii, jj, kk) {
+    expect_true(dsa_identical_to_array(xx[ii, jj, kk],
+                                       x[ii, jj, kk, drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = ii, j = jj, k = kk),
+                     xx[ii, jj, kk])
+    expect_true(dsa_identical_to_array(
+      xx[as.character(ii), letters[jj], LETTERS[kk]],
+      x[as.character(ii), letters[jj], LETTERS[kk], drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+                                             j = letters[jj],
+                                             k = LETTERS[kk]),
+                     xx[as.character(ii), letters[jj], LETTERS[kk], ])
+  }, ii = i, jj = j, kk = k)
+  i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
+  j_bad <- list(ncol(xx) + 1, 1:(ncol(xx) + 1))
+  k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i_bad, jj = j, kk = k)
+  msg <- "subscript j out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i, jj = j_bad, kk = k)
+  msg <- "subscript k out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i, jj = j, kk = k_bad)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i_bad, jj = j_bad, kk = k)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i_bad, jj = j, kk = k_bad)
+  msg <- "subscript i out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i_bad, jj = j_bad, kk = k_bad)
+  msg <- "subscript j out of bounds"
+  Map(function(ii, jj, kk) {
+    expect_error(xx[ii, jj, kk, ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
+    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+                                         j = letters[jj],
+                                         k = LETTERS[kk]),
+                 msg)
+  }, ii = i, jj = j_bad, kk = k_bad)
+})

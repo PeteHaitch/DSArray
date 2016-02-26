@@ -404,7 +404,7 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
 #' @importFrom methods new slot
 .extract_DSArray_subset <- function(x, i, j, k, ..., drop = FALSE) {
   if (drop) {
-    warning("'drop' ignored '[,", class(x), ",ANY,ANY-method'")
+    warning("'drop' ignored '[,", class(x), ",ANY-method'")
   }
   # NOTE: .validate_DSArray_subscript() is called purely for its side effects.
   x <- .validate_DSArray_subscript(x, i, j, k)
@@ -420,8 +420,8 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
       ii <- slot(x, "key")[, jj, drop = FALSE]
       new_key_dim <- c(nrow(slot(x, "key")), length(jj))
       if (is.character(j)) {
-        new_key_dimnames[[2L]] <-
-          new_key_dimnames[[2L]][match(j, new_key_dimnames[[2L]])]
+        j_numeric <- match(j, new_key_dimnames[[2L]])
+        new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j_numeric]
       } else {
         new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
       }
@@ -445,8 +445,8 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
         new_key_dimnames[[1L]] <- new_key_dimnames[[1L]][i]
       }
       if (is.character(j)) {
-        new_key_dimnames[[2L]] <-
-          new_key_dimnames[[2L]][match(j, new_key_dimnames[[2L]])]
+        j_numeric <- match(j, new_key_dimnames[[2L]])
+        new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j_numeric]
       } else {
         new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
       }
@@ -469,10 +469,14 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
     new_key <- key_map[ii_dt, on = "ii"][, sp_key]
     # Re-dimension new_key to be a matrix with the appropriate dimensions
     dim(new_key) <- new_key_dim
-    dimnames(new_key) <- new_key_dimnames
     if (!missing(j) && anyDuplicated(j)) {
-      new_key <- new_key[, j, drop = FALSE]
+      if (is.character(j)) {
+        new_key <- new_key[, j_numeric, drop = FALSE]
+      } else {
+        new_key <- new_key[, j, drop = FALSE]
+      }
     }
+    dimnames(new_key) <- new_key_dimnames
     new("DSArray", key = new_key, val = new_val)
   }
 }
