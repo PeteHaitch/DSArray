@@ -246,15 +246,27 @@ setMethod("DSArray", "array",
             }
             if (MARGIN == 1L) {
               x_list <- lapply(seq_len(d[MARGIN]), function(idx, x) {
-                x[idx, , ]
+                tmp <- x[idx, , , drop = FALSE]
+                dn <- dimnames(tmp)
+                dim(tmp) <- d[-MARGIN]
+                dimnames(tmp) <- dn[-MARGIN]
+                tmp
               }, x = x)
             } else if (MARGIN == 2L) {
               x_list <- lapply(seq_len(d[MARGIN]), function(idx, x) {
-                x[, idx, ]
+                tmp <- x[, idx, , drop = FALSE]
+                dn <- dimnames(tmp)
+                dim(tmp) <- d[-MARGIN]
+                dimnames(tmp) <- dn[-MARGIN]
+                tmp
               }, x = x)
             } else if (MARGIN == 3L) {
               x_list <- lapply(seq_len(d[MARGIN]), function(idx, x) {
-                x[, , idx]
+                tmp <- x[, , idx, drop = FALSE]
+                dn <- dimnames(tmp)
+                dim(tmp) <- d[-MARGIN]
+                dimnames(tmp) <- dn[-MARGIN]
+                tmp
               }, x = x)
             }
             if (is.null(dimnames)) {
@@ -276,9 +288,9 @@ setMethod("DSArray", "array",
 #'
 #' @export
 setMethod("dim", "DSArray",
-  function(x) {
-    c(dim(slot(x, "key")), ncol(slot(x, "val")))
-  }
+          function(x) {
+            c(dim(slot(x, "key")), ncol(slot(x, "val")))
+          }
 )
 
 ### nslice
@@ -499,34 +511,36 @@ setMethod("[", "DSArray",
 # NOTE: Like [<-,matrix-method, the original dimnames of x are preserved.
 #' @importFrom methods slot slot<-
 .replace_DSArray_subset <- function(x, i, j, k, value) {
-  # NOTE: .validate_DSArray_subscript() is called purely for its side effects.
-  x <- .validate_DSArray_subscript(x, i, j, k)
-  # NOTE: .validate_DSArray_value_dim() is called purely for its side effects.
-  value <- .validate_DSArray_value_dim(value, i, j, k, x)
-  if (missing(i) && missing(j)) {
-    if (!missing(k)) {
-      slot(x, "val")[, k] <- slot(value, "val")
-    }
-    return(x)
+  if (!missing(i) & missing(j) & missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[i, , ] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (missing(i) & !missing(j) & missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[, j, ] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (missing(i) & missing(j) & !missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[, , k] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (!missing(i) & !missing(j) & missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[i, j, ] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (!missing(i) & missing(j) & !missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[i, , k] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (missing(i) & !missing(j) & !missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
+  } else if (!missing(i) & !missing(j) & !missing(k)) {
+    densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
+    densified_x[i, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
+    return(DSArray(densified_x))
   } else {
-    if (missing(i) && !missing(j)) {
-      ii <- slot(x, "key")[, j, drop = FALSE]
-    } else if (!missing(i) && missing(j)) {
-      ii <- slot(x, "key")[i, , drop = FALSE]
-    } else if (!missing(i) && !missing(j)) {
-      ii <- slot(x, "key")[i, j, drop = FALSE]
-    }
-    if (missing(k)) {
-      slot(x, "val")[ii, ] <- slot(value, "val")
-    } else {
-      slot(x, "val")[ii, k] <- slot(value, "val")
-    }
-    # TODO: This works but expands data; can we avoid this expansion? Could
-    #       perhaps match rows of x@val and rows of value@val, rbind x@val and
-    #       value@val, and update x@key?
-    sparsified <- .sparsify(slot(x, "val")[slot(x, "key"), , drop = FALSE])
-    dim(slot(sparsified, "key")) <- dim(slot(x, "key"))
-    sparsified
+    stop("Please provide at least one 'i', 'j', or 'k'")
   }
 }
 
@@ -535,8 +549,7 @@ setMethod("[", "DSArray",
 #'
 #' @export
 setReplaceMethod("[", "DSArray",
-                 function(x, i, j, k, ..., value)
-                 .replace_DSArray_subset(x, i, j, k, value)
+                 .replace_DSArray_subset
 )
 
 ### rbind/cbind
