@@ -763,6 +763,6 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
 test_that("Errors if no subcript supplied", {
   msg <- "Please provide at least one 'i', 'j', or 'k'"
   yy <- xx
-  expect_error(xx[] <- yy, msg)
+  expect_error(yy[] <- xx, msg)
 })
 

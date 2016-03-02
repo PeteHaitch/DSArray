@@ -549,7 +549,9 @@ setMethod("[", "DSArray",
 #'
 #' @export
 setReplaceMethod("[", "DSArray",
-                 .replace_DSArray_subset
+                 function(x, i, j, k, ..., value) {
+                   .replace_DSArray_subset(x, i, j, k, value)
+                 }
 )
 
 ### rbind/cbind
