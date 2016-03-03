@@ -13,11 +13,11 @@ LazyData: TRUE
 Depends:
     R (>= 2.8.0)
 Imports:
-    BiocGenerics,
     data.table,
     methods,
     S4Vectors
 Suggests:
+    abind,
     knitr,
     rmarkdown,
     SummarizedExperiment,

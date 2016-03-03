@@ -12,7 +12,7 @@ setGeneric(".sparsify", signature = "x",
            function(x, ...) standardGeneric(".sparsify")
 )
 
-#' @rdname DSArray-class
+#' @rdname DSArray
 #' @importFrom methods setGeneric
 #'
 #' @export
@@ -71,4 +71,63 @@ setGeneric("slicenames", signature = "x",
 #' @export
 setGeneric("slicenames<-", signature = c("x", "value"),
            function(x, value) standardGeneric("slicenames<-")
+)
+
+#' Combine multi-dimensional array-like objects.
+#'
+#' @description
+#' Combine multi-dimensional array-like objects. abind is a generalization of
+#' cbind and rbind inspired by \code{abind::\link{abind}}. Takes a sequence of
+#' array-like objects and produces a single object of the same class with the
+#' same or higher dimension.
+#'
+#' NOTE: This man page is for the \code{abind} \emph{S4 generic functions}
+#' defined in the \pkg{DSArray} package. See \code{?abind::\link{abind}} for
+#' the default methods (defined in the \pkg{abind} package) and which is the
+#' inspiration for this S4 generic.
+#'
+#' @param ... Any number of array-like objects. The dimensions of all the
+#' array-like objects must match, except on one dimension (specified by
+#' \code{along}).
+#' @param along The dimension along which to bind the array-like objects.
+#'
+#' @return Specific methods will typically return an object of the same class
+#' as the input objects.
+#'
+#' @seealso
+#'  \itemize{
+#'    \item \code{abind::\link[abind]{abind}} for the inspiration for this
+#'          generic.
+#'  }
+#'
+#' @examples
+#' abind  # note the dispatch on the '...' arg only
+#' showMethods("abind")
+#' selectMethod("abind", "DSArray")  # the DSArray method
+#'
+#' @rdname abind
+#' @importFrom methods setGeneric
+#'
+#' @export
+setGeneric("abind", signature = "...",
+           function(..., along) standardGeneric("abind"))
+
+#' Densify a DSArray object
+#'
+#' Densifying a DSArray object coerces it to the equivalent 3-dimensional
+#' \link[base]{array}.
+#'
+#' If \code{x} is a DSArray object then \code{densify(x)}
+#' is equivalent to \code{as(x, "array")}.
+#'
+#' @rdname densify
+#' @importFrom methods setMethod
+#'
+#' @param x A \link{DSArray} object.
+#'
+#' @return A 3-dimensional \link[base]{array}.
+#'
+#' @export
+setGeneric("densify", signature = c("x"),
+           function(x) standardGeneric("densify")
 )

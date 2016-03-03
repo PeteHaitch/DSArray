@@ -11,5 +11,4 @@
 #'
 #' @docType package
 #' @name DSArray-package
-#' @import BiocGenerics
 NULL

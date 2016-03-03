@@ -157,6 +157,8 @@ setValidity2("DSArray", .valid.DSArray)
 #' @rdname DSArray
 #' @importFrom methods setMethod
 #'
+#' @seealso \link{DSArray-class}
+#'
 #' @export
 setMethod("DSArray", "matrix",
           function(x, dimnames = NULL) {
@@ -554,35 +556,54 @@ setReplaceMethod("[", "DSArray",
                  }
 )
 
-### rbind/cbind
+### abind
 
-.bind_DSArray <- function(lst, bind) {
+#' @rdname DSArray-class
+#' @importFrom methods setMethod
+#'
+#' @param ... \link{DSArray} objects. The dimensions of all the \link{DSArray}
+#' objects must match, except on one dimension (specified by \code{along}).
+#' @param along The dimension along which to bind the DSArray objects.
+#' Currently, only binding by row (\code{along = 1}) or binding by column
+#' (\code{along = 2}) is supported.
+#'
+#' @rdname DSArray
+#' @importFrom methods setMethod
+#'
+#' @export
+setMethod("abind", "DSArray",
+          function(..., along) {
+            if (length(along) > 1 | (!along %in% c(1L, 2L))) {
+              stop("'along' must be 1 or 2")
+            }
+            .abind_DSArray(unname(list(...)), along = along)
+          })
+
+.abind_DSArray <- function(lst, along) {
   if (length(lst) == 0L) {
     return(DSArray())
   }
-  ok_nslice <- vapply(lst, function(dsaatrix, ns1) {
-    isTRUE(nslice(dsaatrix) == ns1)
+  ok_nslice <- vapply(lst, function(dsarray, ns1) {
+    isTRUE(nslice(dsarray) == ns1)
   }, logical(1L), ns1 = nslice(lst[[1L]]))
   if (!all(ok_nslice)) {
-    stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
-         "nslice")
+    stop("Cannot abind ", class(lst[[1L]]), " objects with different nslice")
   }
-  if (bind == "rbind") {
-    ok_ncol <- vapply(lst, function(dsaatrix, nc1) {
-      isTRUE(ncol(dsaatrix) == nc1)
+  if (along == 1L) {
+    ok_ncol <- vapply(lst, function(dsarray, nc1) {
+      isTRUE(ncol(dsarray) == nc1)
     }, logical(1L), nc1 = ncol(lst[[1L]]))
     if (!all(ok_ncol)) {
-      stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
-           "ncol")
+      stop("Cannot abind 'along = ", along, "' ", class(lst[[1L]]),
+           " objects with different ncol")
     }
-  }
-  if (bind == "cbind") {
-    ok_nrow <- vapply(lst, function(dsaatrix, nr1) {
-      isTRUE(nrow(dsaatrix) == nr1)
+  } else if (along == 2L) {
+    ok_nrow <- vapply(lst, function(dsarray, nr1) {
+      isTRUE(nrow(dsarray) == nr1)
     }, logical(1L), nr1 = nrow(lst[[1L]]))
     if (!all(ok_nrow)) {
-      stop("Cannot ", bind, " ", class(lst[[1L]]), " objects with different ",
-           "nrow")
+      stop("Cannot abind 'along = ", along, "' ", class(lst[[1L]]),
+           " objects with different nrow")
     }
   }
   keys_list <- lapply(lst, slot, "key")
@@ -591,7 +612,11 @@ setReplaceMethod("[", "DSArray",
   keys_list <- Map(function(key, increment) {
     key + increment
   }, key = keys_list, increment = increment_list)
-  new_key <- do.call(bind, keys_list)
+  if (along == 1L) {
+    new_key <- do.call("rbind", keys_list)
+  } else if (along == 2L) {
+    new_key <- do.call("cbind", keys_list)
+  }
   new_key_dim <- dim(new_key)
   new_val <- do.call("rbind", lapply(lst, slot, "val"))
   # NOTE: new("DSArray", key = new_key, val = new_val) works
@@ -602,42 +627,19 @@ setReplaceMethod("[", "DSArray",
   new_key <- slot(sparsified, "key")[new_key, ]
   dim(new_key) <- new_key_dim
   new_val <- slot(sparsified, "val")
-  new("DSArray", key = new_key, val = new_val)
+  dsarray <- new("DSArray", key = new_key, val = new_val)
+  # Update dimnames
+  if (along ==  1L) {
+    rn <- do.call("c", lapply(lst, rownames))
+    cn <- colnames(lst[[1L]])
+  } else if (along == 2L) {
+    rn <- rownames(lst[[1L]])
+    cn <- do.call("c", lapply(lst, colnames))
+  }
+  rownames(dsarray) <- rn
+  colnames(dsarray) <- cn
+  dsarray
 }
-
-# TODO: Test rbind/cbind in the context of DSArray being an assay in a SE.
-#       That's where we want the behaviour to work!
-# TODO: cbind/rbind don't seem to be "active" until I do something like
-#       library(SummarizeExperiment) which also has a specialised cbind/rbind
-#       method defined.
-# TODO: dimnames behaviour. Currently, rownames and colnames are stripped
-#       (slicenames are preserved). Are slicenames checked for conflicts?
-#       rownames and colnames should be preserved (or not) in the same manner
-#       as matrix,rbind-method.
-#' @rdname DSArray-class
-#' @importFrom methods setMethod slot
-#'
-#' @export
-setMethod("rbind", "DSArray",
-          function(..., deparse.level = 1) {
-            .bind_DSArray(unname(list(...)), "rbind")
-          }
-)
-
-# TODO: dimnames behaviour. Currently, rownames and colnames are stripped
-#       (slicenames are preserved). Are slicenames checked for conflicts?
-#       rownames and colnames should be preserved (or not) in the same manner
-#       as matrix,cbind-method.
-# NOTE: cbind is used to add samples
-#' @rdname DSArray-class
-#' @importFrom methods setMethod
-#'
-#' @export
-setMethod("cbind", "DSArray",
-          function(..., deparse.level = 1) {
-            .bind_DSArray(unname(list(...)), "cbind")
-          }
-)
 
 ### combine
 ### TODO
@@ -645,5 +647,19 @@ setMethod("cbind", "DSArray",
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Coercion
 ###
-### TODO: Coercion to matrix (will not work for multiple samples unless go to
-###       3-dim array)
+
+#' @rdname DSArray-class
+#' @importFrom methods setMethod
+#'
+#' @export
+setMethod("densify", "DSArray",
+          function(x) {
+            .densify(x, simplify = TRUE, warn = FALSE)
+          }
+)
+
+setAs("DSArray", "array",
+      function(from) {
+        densify(from)
+      }
+)

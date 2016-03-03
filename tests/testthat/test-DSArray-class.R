@@ -759,10 +759,43 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   }, ii = i, jj = j, kk = k_bad)
 })
 
-# UP TO HERE: Not working as expected
 test_that("Errors if no subcript supplied", {
   msg <- "Please provide at least one 'i', 'j', or 'k'"
   yy <- xx
   expect_error(yy[] <- xx, msg)
 })
 
+context("abind,DSArray-method")
+
+test_that("abind works on good input", {
+  lapply(1:2, function(along) {
+    expect_true(dsa_identical_to_array(
+      abind(xx[1, , ], xx[1, , ], along = along),
+      abind::abind(x[1, , , drop = FALSE], x[1, , , drop = FALSE],
+                   along = along)))
+    expect_true(dsa_identical_to_array(
+      abind(xx, xx, along = along),
+      abind::abind(x, x, along = along)))
+  })
+})
+
+test_that("abind errors on bad input", {
+  expect_error(abind(xx, xx, along = 3), "'along' must be 1 or 2")
+  msg <- "Cannot abind DSArray objects with different nslice"
+  expect_error(abind(xx, DSArray(matrix(1:10, ncol = 2)), along = 1), msg)
+  expect_error(abind(xx, DSArray(matrix(1:10, ncol = 2)), along = 2), msg)
+  msg <- "Cannot abind 'along = 1' DSArray objects with different ncol"
+  expect_error(abind(DSArray(array(1:10, dim = c(5, 1, 2))),
+                     DSArray(array(1:20, dim = c(5, 2, 2))), along = 1),
+               msg)
+  msg <- "Cannot abind 'along = 2' DSArray objects with different nrow"
+  expect_error(abind(DSArray(array(1:10, dim = c(1, 5, 2))),
+                     DSArray(array(1:20, dim = c(2, 5, 2))), along = 2),
+               msg)
+})
+
+context("densify,DSArray-method")
+
+test_that("coercion works as expected", {
+  expect_identical(densify(xx), x)
+})
