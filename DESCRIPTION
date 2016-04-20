@@ -15,12 +15,12 @@ Depends:
 Imports:
     data.table,
     methods,
-    S4Vectors
+    S4Vectors,
+    SummarizedExperiment (>= 1.1.24)
 Suggests:
     abind,
     knitr,
     rmarkdown,
-    SummarizedExperiment,
     testthat
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1

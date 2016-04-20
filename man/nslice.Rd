@@ -19,4 +19,7 @@ Analogous to \code{\link[base]{nrow}} and \code{\link[base]{nrow}},
 \link[=DSArray-class]{DSArray} object then \code{nslice(x)} is equivalent
 to \code{dim(x)[3]}.
 }
+\author{
+Peter Hickey
+}
 

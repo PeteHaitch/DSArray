@@ -20,4 +20,7 @@ Densifying a DSArray object coerces it to the equivalent 3-dimensional
 If \code{x} is a DSArray object then \code{densify(x)}
 is equivalent to \code{as(x, "array")}.
 }
+\author{
+Peter Hickey
+}
 

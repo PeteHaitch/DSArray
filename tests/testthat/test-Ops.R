@@ -38,7 +38,7 @@ test_that("Arith,vector,DSarray-method works", {
   })
 })
 
-test_that("Arith,DSarray,vector-method warns if length(e2) > 1", {
+test_that("Arith,DSarray,vector-method warns of densifying if length(e2) > 1", {
   ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
   lapply(ops, function(op) {
     expect_warning(op(seq_along(xx), xx),
@@ -57,17 +57,18 @@ test_that("Arith,DSarray,vector-method warns if length(e2) > 1", {
   })
 })
 
-test_that("Arith,vector,DSArray-method signature works", {
+test_that("Arith,DSArray,DSArray-method works", {
   ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
   lapply(ops, function(op) {
-    expect_true(dsa_identical_to_array(op(3, xx), op(3, x)))
+    suppressWarnings(expect_true(dsa_identical_to_array(op(xx, xx), op(x, x))))
   })
 })
 
-test_that("Arith,DSArray,DSArray-method signature not yet implemented", {
+test_that("Arith,DSarray,DSArray-method warns of densifying", {
   ops <- c(`+`, `-`, `*`, `^`, `%%`, `%/%`, `/`)
+  msg <- "Densifying. This can cause a large increase in memory usage"
   lapply(ops, function(op) {
-    expect_error(op(xx, xx), "non-numeric argument to binary operator")
+    expect_warning(op(xx, xx), msg)
   })
 })
 
@@ -114,7 +115,7 @@ test_that("Compare,vector,DSArray-method works", {
   })
 })
 
-test_that("Compare,DSarray,vector-method warns if length(e2) > 1", {
+test_that("Compare,DSarray,vector-method warns of densifying if length(e2) > 1", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
     expect_warning(op(seq_along(xx), xx),
@@ -133,12 +134,18 @@ test_that("Compare,DSarray,vector-method warns if length(e2) > 1", {
   })
 })
 
-test_that("Compare,DSArray,DSArrayn-method not yet implemented", {
+test_that("Compare,DSArray,DSArray-method works", {
   ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
   lapply(ops, function(op) {
-    expect_error(op(xx, xx),
-                 paste0("comparison \\([0-9]\\) is possible only for atomic and ",
-                        "list types"))
+    suppressWarnings(expect_true(dsa_identical_to_array(op(xx, xx), op(x, x))))
+  })
+})
+
+test_that("Compare,DSarray,DSArray-method warns of densifying", {
+  ops <- c(`==`, `>`, `<`, `!=`, `<=`, `>=`)
+  msg <- "Densifying. This can cause a large increase in memory usage"
+  lapply(ops, function(op) {
+    expect_warning(op(xx, xx), msg)
   })
 })
 
@@ -148,7 +155,7 @@ test_that("Compare,DSArray,DSArrayn-method not yet implemented", {
 
 context("Logic group generic")
 
-test_that("Logic,DSarraymvector-method works", {
+test_that("Logic,DSarray,vector-method works", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
     expect_true(dsa_identical_to_array(op(xx, 3), op(x, 3)))
@@ -189,7 +196,7 @@ test_that("Logic,vector,DSArray-method works", {
   })
 })
 
-test_that("Logic,DSarray,vector-method warns if length(e2) > 1", {
+test_that("Logic,DSarray,vector-method warns of densifying if length(e2) > 1", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
     expect_warning(op(seq_along(xx), xx),
@@ -208,12 +215,17 @@ test_that("Logic,DSarray,vector-method warns if length(e2) > 1", {
   })
 })
 
-
-test_that("Logic,DSArray,DSArray-method not yet implemented", {
+test_that("Logic,DSArray,DSArray-method works", {
   ops <- c(`&`, `|`)
   lapply(ops, function(op) {
-    expect_error(op(xx, xx),
-                 paste0("operations are possible only for numeric, logical or ",
-                        "complex types"))
+    suppressWarnings(expect_true(dsa_identical_to_array(op(xx, xx), op(x, x))))
+  })
+})
+
+test_that("Logic,DSarray,DSArray-method warns of densifying", {
+  ops <- c(`&`, `|`)
+  msg <- "Densifying. This can cause a large increase in memory usage"
+  lapply(ops, function(op) {
+    expect_warning(op(xx, xx), msg)
   })
 })

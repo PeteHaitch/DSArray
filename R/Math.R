@@ -10,7 +10,7 @@
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Math
 #'
-#' @export
+#' @rdname DSArray-utils
 setMethod("Math", "DSArray",
           function(x) {
             slot(x, "val", check = FALSE) <- callGeneric(slot(x, "val"))
@@ -24,7 +24,7 @@ setMethod("Math", "DSArray",
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
 #'
-#' @export
+#' @rdname DSArray-utils
 setMethod("cummax", "DSArray",
           function(x) {
             callGeneric(.densify(x, warn = TRUE))
@@ -34,7 +34,7 @@ setMethod("cummax", "DSArray",
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
 #'
-#' @export
+#' @rdname DSArray-utils
 setMethod("cummin", "DSArray",
           function(x) {
             callGeneric(.densify(x, warn = TRUE))
@@ -44,7 +44,7 @@ setMethod("cummin", "DSArray",
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
 #'
-#' @export
+#' @rdname DSArray-utils
 setMethod("cumprod", "DSArray",
           function(x) {
             callGeneric(.densify(x, warn = TRUE))
@@ -54,7 +54,7 @@ setMethod("cumprod", "DSArray",
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
 #'
-#' @export
+#' @rdname DSArray-utils
 setMethod("cumsum", "DSArray",
           function(x) {
             callGeneric(.densify(x, warn = TRUE))

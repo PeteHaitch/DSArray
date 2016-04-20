@@ -27,6 +27,11 @@ Analogous to \code{\link[base]{rownames}} and \code{\link[base]{colnames}},
 equivalent to \code{dimnames(x)[3]}. Similarly,
 \code{slicenames(x) <- value} sets the \code{slicenames} of the object.
 }
+\author{
+Peter Hickey
+
+Peter Hickey
+}
 \seealso{
 \code{base::\link[base]{rownames}} for the default \code{rownames},
 \code{`rownames<-`}, \code{colnames}, \code{`colnames<-`} methods.

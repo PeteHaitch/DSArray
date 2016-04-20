@@ -51,7 +51,7 @@
 #' formula for decrease in memory as a function of \code{nrow{x}},
 #' \code{ncol(x)}, and \code{sum(duplicated(x))}}.
 #'
-#' @section Supportyed Types:
+#' @section Supported Types:
 #' R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
 #' \code{\link[base]{double}} (often called \code{\link[base]{numeric}}),
 #' \code{\link[base]{character}}, \code{\link[base]{complex}}, and
@@ -63,7 +63,8 @@
 #' 3-dimensional "dense" array.
 #' @slot val A matrix storing the unique slices of the input array.
 #'
-#' @seealso \code{\link{DSArray}}
+#' @seealso \code{\link{DSArray}}, \code{\link{DSArray-utils}}
+#' @author Peter Hickey
 #'
 #' @rdname DSArray-class
 #'
@@ -88,11 +89,11 @@ setClass("DSArray",
 .valid.DSArray.key <- function(x) {
   msg <- paste0("'key' slot of a ", class(x), " must be a matrix of ",
                 "positive integers (NAs not permitted)")
-  if (!is.matrix(slot(x, "key")) | !is.integer(slot(x, "key"))) {
+  if (!is.matrix(slot(x, "key")) || !is.integer(slot(x, "key"))) {
     return(msg)
   }
   min_key <- min(slot(x, "key"))
-  if (is.na(min_key) | (min_key < 0)) {
+  if (is.na(min_key) || (min_key < 0)) {
     return(msg)
   }
   col_max <- apply(slot(x, "key"), 1, max)
@@ -420,6 +421,15 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
   if (drop) {
     warning("'drop' ignored '[,", class(x), ",ANY-method'")
   }
+  if (!missing(i) && is.logical(i)) {
+    i <- which(rep_len(i, length.out = nrow(x)))
+  }
+  if (!missing(j) && is.logical(j)) {
+    j <- which(rep_len(j, length.out = ncol(x)))
+  }
+  if (!missing(k) && is.logical(k)) {
+    k <- which(rep_len(k, length.out = nslice(x)))
+  }
   # NOTE: .validate_DSArray_subscript() is called purely for its side effects.
   x <- .validate_DSArray_subscript(x, i, j, k)
   new_key_dimnames <- dimnames(slot(x, "key"))
@@ -502,6 +512,15 @@ globalVariables("sp_key")
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'
+#' @param i,j,k Indices specifying elements to extract or replace. Indices are
+#' \code{numeric} or \code{character} vectors or empty (missing). \code{i}
+#' indexes rows, \code{j} indexes columns, and \code{k} indexes slices.
+#' \code{i}, \code{j}, and \code{k} can be logical vectors, indicating
+#' elements/slices to select. Such vectors are recycled if necessary to match
+#' the corresponding extent. Indexing by negative values, matrix \code{i}, or
+#' \code{NULL} indices are not currently implemented.
+#' @param drop Currently ignored
+#'
 #' @export
 setMethod("[", "DSArray",
           .extract_DSArray_subset
@@ -514,30 +533,37 @@ setMethod("[", "DSArray",
 #' @importFrom methods slot slot<-
 .replace_DSArray_subset <- function(x, i, j, k, value) {
   if (!missing(i) & missing(j) & missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, i = i, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[i, , ] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (missing(i) & !missing(j) & missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, j = j, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[, j, ] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (missing(i) & missing(j) & !missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, k = k, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[, , k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (!missing(i) & !missing(j) & missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, i = i, j = j, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[i, j, ] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (!missing(i) & missing(j) & !missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, i = i, k = k, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[i, , k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (missing(i) & !missing(j) & !missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, j = j, k = k, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (!missing(i) & !missing(j) & !missing(k)) {
+    value <- .validate_DSArray_value_dim(value = value, i = i, j = j, k = k, x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[i, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
@@ -549,6 +575,9 @@ setMethod("[", "DSArray",
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'
+#' @inheritParams `[,DSArray-method`
+#' @param value Replacement value
+#'
 #' @export
 setReplaceMethod("[", "DSArray",
                  function(x, i, j, k, ..., value) {
@@ -556,30 +585,9 @@ setReplaceMethod("[", "DSArray",
                  }
 )
 
-### abind
+### arbind/acbind
 
-#' @rdname DSArray-class
-#' @importFrom methods setMethod
-#'
-#' @param ... \link{DSArray} objects. The dimensions of all the \link{DSArray}
-#' objects must match, except on one dimension (specified by \code{along}).
-#' @param along The dimension along which to bind the DSArray objects.
-#' Currently, only binding by row (\code{along = 1}) or binding by column
-#' (\code{along = 2}) is supported.
-#'
-#' @rdname DSArray
-#' @importFrom methods setMethod
-#'
-#' @export
-setMethod("abind", "DSArray",
-          function(..., along) {
-            if (length(along) > 1 | (!along %in% c(1L, 2L))) {
-              stop("'along' must be 1 or 2")
-            }
-            .abind_DSArray(unname(list(...)), along = along)
-          })
-
-.abind_DSArray <- function(lst, along) {
+.bind_DSArray <- function(lst, along) {
   if (length(lst) == 0L) {
     return(DSArray())
   }
@@ -587,23 +595,23 @@ setMethod("abind", "DSArray",
     isTRUE(nslice(dsarray) == ns1)
   }, logical(1L), ns1 = nslice(lst[[1L]]))
   if (!all(ok_nslice)) {
-    stop("Cannot abind ", class(lst[[1L]]), " objects with different nslice")
+    stop("Cannot arbind/acbind ", class(lst[[1L]]), " objects with ",
+         "different nslice")
   }
   if (along == 1L) {
     ok_ncol <- vapply(lst, function(dsarray, nc1) {
       isTRUE(ncol(dsarray) == nc1)
     }, logical(1L), nc1 = ncol(lst[[1L]]))
     if (!all(ok_ncol)) {
-      stop("Cannot abind 'along = ", along, "' ", class(lst[[1L]]),
-           " objects with different ncol")
+      stop("Cannot arbind ", class(lst[[1L]]), " objects with different ncol")
+
     }
   } else if (along == 2L) {
     ok_nrow <- vapply(lst, function(dsarray, nr1) {
       isTRUE(nrow(dsarray) == nr1)
     }, logical(1L), nr1 = nrow(lst[[1L]]))
     if (!all(ok_nrow)) {
-      stop("Cannot abind 'along = ", along, "' ", class(lst[[1L]]),
-           " objects with different nrow")
+      stop("Cannot acbind ", class(lst[[1L]]), " objects with different nrow")
     }
   }
   keys_list <- lapply(lst, slot, "key")
@@ -641,6 +649,39 @@ setMethod("abind", "DSArray",
   dsarray
 }
 
+#' @rdname DSArray-class
+#' @importFrom methods setMethod
+#'
+#' @param ... \link{DSArray} objects. For \code{arbind}, the \code{ncol} and
+#' \code{nslice} of all objects must match, but the \code{nrow} may differ. For
+#' \code{acbind}, the \code{nrow} and \code{nslice} of all objects must match,
+#' but the \code{ncol} may differ.
+#'
+#' @rdname DSArray
+#' @importFrom methods setMethod
+#' @importFrom SummarizedExperiment arbind
+#'
+#' @export
+setMethod("arbind", "DSArray",
+          function(...) {
+            .bind_DSArray(unname(list(...)), along = 1)
+          })
+
+#' @rdname DSArray-class
+#' @importFrom methods setMethod
+#'
+#' @inheritParams arbind,DSArray-method
+#'
+#' @rdname DSArray
+#' @importFrom methods setMethod
+#' @importFrom SummarizedExperiment acbind
+#'
+#' @export
+setMethod("acbind", "DSArray",
+          function(...) {
+            .bind_DSArray(unname(list(...)), along = 2)
+          })
+
 ### combine
 ### TODO
 
@@ -658,8 +699,15 @@ setMethod("densify", "DSArray",
           }
 )
 
+#' @importFrom methods setAs
 setAs("DSArray", "array",
       function(from) {
         densify(from)
       }
 )
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### show
+###
+
+# TODO: Print class, dimensions (and the first few rows)?

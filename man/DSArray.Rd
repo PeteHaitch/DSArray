@@ -21,6 +21,8 @@ DSArray(x, ...)
 \link[base]{matrix} objects with identical dimensions, or a
 \link[base]{matrix}.}
 
+\item{...}{Further arguments passed to other methods}
+
 \item{dimnames}{A \link[base]{dimnames} attribute for the DSArray: NULL or
 a list of length 3. An empty list is treated as \code{NULL}, a list of
 length one as row names, and a list of length two as row names and column
@@ -43,6 +45,9 @@ Construct a \link[=DSArray-class]{DSArray} from a 3-dimensional
 \section{Dimnames}{
 
 \strong{TODO: Document how dimnames are constructed.}
+}
+\author{
+Peter Hickey
 }
 \seealso{
 \link{DSArray-class}

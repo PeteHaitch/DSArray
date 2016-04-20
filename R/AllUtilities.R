@@ -1,3 +1,10 @@
+#' @note This modifies the input by reference since it uses `:=`. Could add a
+#' \code{data.table::copy()} at the beginning of the function to avoid
+#' modifying the original object. However, since we only use the input as a
+#' temporary representation of the data we do not bother since copying incurs
+#' some expense. Be careful if using .sparsify() on a data.table for which you
+#' wish to retain the original copy.
+#' @author Peter Hickey
 #' @importFrom methods new setMethod
 #' @importFrom data.table := .GRP .I key setkey setkeyv
 setMethod(".sparsify", "data.table",
@@ -5,7 +12,7 @@ setMethod(".sparsify", "data.table",
             # NOTE: Will otherwise get errors if data have zero rows.
             if (nrow(x)) {
               # Add an index for the original row number
-              if (any(grepl(".my", colnames(x)))) {
+              if (any(grepl("^\\.my", colnames(x)))) {
                 stop("'x' must not have colnames beginning with '.my'")
               }
               x[, .myI := .I]
@@ -20,8 +27,8 @@ setMethod(".sparsify", "data.table",
               key <- setkey(x[, list(.myI, .myKey)], .myI)[, .myKey]
               val <- unique(x)[, c(".myI", ".myKey") := NULL]
             } else {
-              val <- x
-              key <- matrix()
+              # TODO: Currently using a circuitous way to get the desired result
+              return(.sparsify(matrix(dimnames = list(NULL, colnames(x)))))
             }
             # Fix the dimnames
             if ("rn" %in% colnames(val)) {
@@ -36,12 +43,16 @@ setMethod(".sparsify", "data.table",
             # TODO: Check the logic of this conditional
             # if (identical(colnames(val), paste0("V", seq_len(ncol(val))))) {
             if (any(grepl(".MY", colnames(x)))) {
-              dimnames(val) <- NULL
+              dimnames(val) <- list(NULL, NULL)
             } else {
               rownames(val) <- NULL
             }
+            key <- as.matrix(key)
+            # NOTE: Really a no-op but ensures identical() passes in some
+            #       unit tests
+            dimnames(key) <- list(NULL, NULL)
             # Return the result
-            new("DSArray", key = as.matrix(key), val = val)
+            new("DSArray", key = key, val = val)
           }
 )
 # To avoid WARNINGs about "Undefined global functions or variables" in
@@ -49,6 +60,7 @@ setMethod(".sparsify", "data.table",
 #' @importFrom utils globalVariables
 globalVariables(c(".myI", ".myKey"))
 
+#' @author Peter Hickey
 #' @importFrom data.table as.data.table data.table setnames
 #' @importFrom methods setMethod
 setMethod(".sparsify", "matrix",
@@ -74,18 +86,34 @@ setMethod(".sparsify", "matrix",
           }
 )
 
+#' @note This modifies the input by reference since it uses
+#' \code{data.table::setDT()} on the input. Could instead use
+#' \code{data.table::as.data.table(x)} at the beginning of the function to
+#' avoid modifying the original object. However, since we only use the input as
+#' a temporary representation of the data we do not bother since copying incurs
+#' some expense. Be careful if using .sparsify() on a data.frame for which you
+#' wish to retain the original copy.
+#' @author Peter Hickey
 #' @importFrom data.table setDT
 #' @importFrom methods setMethod
 setMethod(".sparsify", "data.frame",
           function(x, ...) {
             # Convert input to data.table by reference
-            setDT(x)
+            # NOTE: Retain colnames for same behaviour as
+            #       .sparsify,matrix-method
+            if (nrow(x)) {
+              setDT(x, keep.rownames = TRUE)
+            } else {
+              # TODO: Currently using a circuitous way to get the desired result
+              setDT(x, keep.rownames = FALSE)
+            }
             .sparsify(x)
           }
 )
 
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
+#' @author Peter Hickey
 .validate_DSArray_subscript <- function(x, i, j, k) {
   if (!missing(i) &&
       ((is.numeric(i) && isTRUE(any(i > nrow(x)))) ||
@@ -107,6 +135,7 @@ setMethod(".sparsify", "data.frame",
 
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
+#' @author Peter Hickey
 .validate_DSArray_value_dim <- function(value, i, j, k, x) {
   value_dim <- dim(value)
   if (missing(i) && missing(j)) {
@@ -143,6 +172,7 @@ setMethod(".sparsify", "data.frame",
 # NOTE: Assume each element of the list is one sample's data, i.e., a
 #       column-slice of the resulting 3-dimensional array. This is different to
 #       what base::simplify2array() returns.
+#' @author Peter Hickey
 .list_to_array <- function(l, dim = NULL, dimnames = NULL) {
   if (is.null(dim)) {
     dim <- c(dim(l[[1]]), length(l))
@@ -152,6 +182,7 @@ setMethod(".sparsify", "data.frame",
 
 # TODO: Make a densify(x, simplify = TRUE) S4 generic and method. It should
 #       call .densify(x, simplify = simplify, warn = FALSE).
+#' @author Peter Hickey
 .densify <- function(x, simplify = TRUE, warn = TRUE) {
   if (warn) {
     warning(paste0("Densifying. This can cause a large increase ",

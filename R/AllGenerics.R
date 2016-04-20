@@ -15,6 +15,10 @@ setGeneric(".sparsify", signature = "x",
 #' @rdname DSArray
 #' @importFrom methods setGeneric
 #'
+#' @param ... Further arguments passed to other methods
+#'
+#' @author Peter Hickey
+#'
 #' @export
 setGeneric("DSArray", signature = "x",
            function(x, ...) standardGeneric("DSArray")
@@ -31,6 +35,8 @@ setGeneric("DSArray", signature = "x",
 #' @param x A \link[=DSArray-class]{DSArray} object.
 #'
 #' @return An \link[base]{integer} of length 1.
+#'
+#' @author Peter Hickey
 #'
 #' @importFrom methods setGeneric
 #'
@@ -58,6 +64,8 @@ setGeneric("nslice", signature = "x",
 #' @seealso \code{base::\link[base]{rownames}} for the default \code{rownames},
 #' \code{`rownames<-`}, \code{colnames}, \code{`colnames<-`} methods.
 #'
+#' @author Peter Hickey
+#'
 #' @importFrom methods setGeneric
 #'
 #' @export
@@ -68,49 +76,12 @@ setGeneric("slicenames", signature = "x",
 #' @rdname slicenames
 #' @importFrom methods setGeneric
 #'
+#' @author Peter Hickey
+#'
 #' @export
 setGeneric("slicenames<-", signature = c("x", "value"),
            function(x, value) standardGeneric("slicenames<-")
 )
-
-#' Combine multi-dimensional array-like objects.
-#'
-#' @description
-#' Combine multi-dimensional array-like objects. abind is a generalization of
-#' cbind and rbind inspired by \code{abind::\link{abind}}. Takes a sequence of
-#' array-like objects and produces a single object of the same class with the
-#' same or higher dimension.
-#'
-#' NOTE: This man page is for the \code{abind} \emph{S4 generic functions}
-#' defined in the \pkg{DSArray} package. See \code{?abind::\link{abind}} for
-#' the default methods (defined in the \pkg{abind} package) and which is the
-#' inspiration for this S4 generic.
-#'
-#' @param ... Any number of array-like objects. The dimensions of all the
-#' array-like objects must match, except on one dimension (specified by
-#' \code{along}).
-#' @param along The dimension along which to bind the array-like objects.
-#'
-#' @return Specific methods will typically return an object of the same class
-#' as the input objects.
-#'
-#' @seealso
-#'  \itemize{
-#'    \item \code{abind::\link[abind]{abind}} for the inspiration for this
-#'          generic.
-#'  }
-#'
-#' @examples
-#' abind  # note the dispatch on the '...' arg only
-#' showMethods("abind")
-#' selectMethod("abind", "DSArray")  # the DSArray method
-#'
-#' @rdname abind
-#' @importFrom methods setGeneric
-#'
-#' @export
-setGeneric("abind", signature = "...",
-           function(..., along) standardGeneric("abind"))
 
 #' Densify a DSArray object
 #'
@@ -126,6 +97,8 @@ setGeneric("abind", signature = "...",
 #' @param x A \link{DSArray} object.
 #'
 #' @return A 3-dimensional \link[base]{array}.
+#'
+#' @author Peter Hickey
 #'
 #' @export
 setGeneric("densify", signature = c("x"),

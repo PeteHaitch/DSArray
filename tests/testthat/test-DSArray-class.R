@@ -6,46 +6,46 @@ context("DSArray validity methods")
 
 test_that(".valid.DSArray.key and validObject work", {
   expect_null(.valid.DSArray.key(xx), NULL)
-  expect_that(validObject(xx), not(throws_error()))
+  expect_error(validObject(xx), NA)
   msg <- paste0("'key' slot of a DSArray must be a matrix of ",
                 "positive integers \\(NAs not permitted\\)")
   yy <- xx
   slot(yy, "key") <- -slot(yy, "key")
-  expect_output(.valid.DSArray.key(yy), msg)
+  expect_output(print(.valid.DSArray.key(yy)), msg)
   expect_error(validObject(yy), msg)
   yy <- xx
   slot(yy, "key")[1] <- NA_integer_
-  expect_output(.valid.DSArray.key(yy), msg)
+  expect_output(print(.valid.DSArray.key(yy)), msg)
   expect_error(validObject(yy), msg)
   yy <- xx
   slot(yy, "key", check = FALSE) <- array(slot(yy, "key"), dim = c(100, 2, 2))
-  expect_output(.valid.DSArray.key(yy), msg)
+  expect_output(print(.valid.DSArray.key(yy)), msg)
   expect_error(validObject(yy),
                "invalid object for slot \"key\" in class \"DSArray\"")
   yy <- xx
   storage.mode(slot(yy, "key")) <- "double"
-  expect_output(.valid.DSArray.key(yy), msg)
+  expect_output(print(.valid.DSArray.key(yy)), msg)
   expect_error(validObject(yy), msg)
   yy <- xx
   msg <- "Element\\(s\\) of key > nrow\\(val\\)"
   slot(yy, "key", check = FALSE) <- slot(yy, "key") + 1L
-  expect_output(.valid.DSArray.key(yy), msg)
+  expect_output(print(.valid.DSArray.key(yy)), msg)
   expect_error(validObject(yy), msg)
 })
 
 test_that(".valid.DSArray.val and validObject work", {
   expect_null(.valid.DSArray.val(xx))
-  expect_that(validObject(xx), not(throws_error()))
+  expect_error(validObject(xx), NA)
   msg <- "'val' slot of a DSArray must be a matrix"
   yy <- xx
   slot(yy, "val", check = FALSE) <- array(slot(yy, "val"), dim = c(nrow(yy), 4, 2))
-  expect_output(.valid.DSArray.val(yy), msg)
+  expect_output(print(.valid.DSArray.val(yy)), msg)
   expect_error(validObject(yy),
                "invalid object for slot \"val\" in class \"DSArray\"")
   yy <- xx
   msg <- "'complex' arrays not currently supported"
   slot(yy, "val", check = FALSE) <- slot(yy, "val") + 1i
-  expect_output(.valid.DSArray.val(yy), msg)
+  expect_output(print(.valid.DSArray.val(yy)), msg)
   expect_error(validObject(yy), msg)
 })
 
@@ -158,6 +158,7 @@ test_that("slicenames<- works", {
   expect_null(slicenames(xx))
 })
 
+# TODO: Logical i, j, k
 context("[,DSArray,ANY-method")
 
 test_that("drop is ignored in [,DSArray-metho", {
@@ -177,6 +178,11 @@ test_that("subsetting a DSArray by i works or errors on bad input", {
                      xx[as.character(ii), , ])
 
   })
+  i <- lapply(c(1, 10), function(ii) rep(TRUE, times = ii))
+  lapply(i, function(ii) {
+    expect_true(dsa_identical_to_array(xx[ii, , ], x[ii, , , drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(x = xx, i = ii), xx[ii, , ])
+  })
   i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
   msg <- "subscript i out of bounds"
   lapply(i_bad, function(ii) {
@@ -185,6 +191,7 @@ test_that("subsetting a DSArray by i works or errors on bad input", {
     expect_error(xx[as.character(ii), , ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii)), msg)
   })
+
 })
 
 test_that("subsetting a DSArray by j works or errors on bad input", {
@@ -197,6 +204,11 @@ test_that("subsetting a DSArray by j works or errors on bad input", {
     expect_identical(.extract_DSArray_subset(xx, j = letters[jj]),
                      xx[, letters[jj], , ])
 
+  })
+  j <- lapply(c(1, 2), function(jj) rep(TRUE, times = jj))
+  lapply(j, function(jj) {
+    expect_true(dsa_identical_to_array(xx[, jj, ], x[, jj, , drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, j = jj), xx[, jj, ])
   })
   j_bad <- list(ncol(xx) + 1, 1:(ncol(x) + 1))
   msg <- "subscript j out of bounds"
@@ -218,6 +230,11 @@ test_that("subsetting a DSArray by k works or errors on bad input", {
     expect_identical(.extract_DSArray_subset(xx, k = LETTERS[kk]),
                      xx[, , LETTERS[kk], ])
 
+  })
+  k <- lapply(c(1, 6), function(kk) rep(TRUE, times = kk))
+  lapply(k, function(kk) {
+    expect_true(dsa_identical_to_array(xx[, , kk], x[, , kk, drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, k = kk), xx[, , kk])
   })
   k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
   msg <- "subscript k out of bounds"
@@ -381,6 +398,7 @@ test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
   }, ii = i[1:2], jj = j[1:2], kk = k_bad)
 })
 
+# TODO: Logical i, j, k
 context("[<-,DSArray-method")
 
 test_that("Warning is emitted due to non-optimised method", {
@@ -684,7 +702,6 @@ test_that("replacing a DSArray by (j, k) works or errors on bad input", {
   }, jj = j, kk = k_bad)
 })
 
-# UP TO HERE
 test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
   j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
@@ -765,37 +782,37 @@ test_that("Errors if no subcript supplied", {
   expect_error(yy[] <- xx, msg)
 })
 
-context("abind,DSArray-method")
+context("arbind,DSArray-method and acbind,DSArray-method")
 
-test_that("abind works on good input", {
-  lapply(1:2, function(along) {
+test_that("arbind and acbind work on good input", {
+  mapply(function(bind, along) {
     expect_true(dsa_identical_to_array(
-      abind(xx[1, , ], xx[1, , ], along = along),
+      bind(xx[1, , ], xx[1, , ]),
       abind::abind(x[1, , , drop = FALSE], x[1, , , drop = FALSE],
                    along = along)))
     expect_true(dsa_identical_to_array(
-      abind(xx, xx, along = along),
+      bind(xx, xx),
       abind::abind(x, x, along = along)))
-  })
+  }, bind = c(arbind, acbind), along = 1:2)
 })
 
-test_that("abind errors on bad input", {
-  expect_error(abind(xx, xx, along = 3), "'along' must be 1 or 2")
-  msg <- "Cannot abind DSArray objects with different nslice"
-  expect_error(abind(xx, DSArray(matrix(1:10, ncol = 2)), along = 1), msg)
-  expect_error(abind(xx, DSArray(matrix(1:10, ncol = 2)), along = 2), msg)
-  msg <- "Cannot abind 'along = 1' DSArray objects with different ncol"
-  expect_error(abind(DSArray(array(1:10, dim = c(5, 1, 2))),
-                     DSArray(array(1:20, dim = c(5, 2, 2))), along = 1),
+test_that("arbind and acbind error on bad input", {
+  msg <- "Cannot arbind/acbind DSArray objects with different nslice"
+  expect_error(arbind(xx, DSArray(matrix(1:10, ncol = 2))), msg)
+  expect_error(acbind(xx, DSArray(matrix(1:10, ncol = 2))), msg)
+  msg <- "Cannot arbind DSArray objects with different ncol"
+  expect_error(arbind(DSArray(array(1:10, dim = c(5, 1, 2))),
+                     DSArray(array(1:20, dim = c(5, 2, 2)))),
                msg)
-  msg <- "Cannot abind 'along = 2' DSArray objects with different nrow"
-  expect_error(abind(DSArray(array(1:10, dim = c(1, 5, 2))),
-                     DSArray(array(1:20, dim = c(2, 5, 2))), along = 2),
+  msg <- "Cannot acbind DSArray objects with different nrow"
+  expect_error(acbind(DSArray(array(1:10, dim = c(1, 5, 2))),
+                     DSArray(array(1:20, dim = c(2, 5, 2)))),
                msg)
 })
 
-context("densify,DSArray-method")
+context("densify,DSArray-method and coercion")
 
 test_that("coercion works as expected", {
   expect_identical(densify(xx), x)
+  expect_identical(as(xx, "array"), x)
 })

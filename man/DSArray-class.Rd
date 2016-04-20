@@ -5,7 +5,8 @@
 \alias{DSArray-class}
 \alias{[,DSArray,ANY-method}
 \alias{[<-,DSArray,ANY,ANY,ANY-method}
-\alias{abind,DSArray-method}
+\alias{acbind,DSArray-method}
+\alias{arbind,DSArray-method}
 \alias{densify,DSArray-method}
 \alias{dim,DSArray-method}
 \alias{dimnames,DSArray-method}
@@ -40,19 +41,31 @@
 
 \S4method{[}{DSArray,ANY,ANY,ANY}(x, i, j, k, ...) <- value
 
-\S4method{abind}{DSArray}(..., along)
+\S4method{arbind}{DSArray}(...)
+
+\S4method{acbind}{DSArray}(...)
 
 \S4method{densify}{DSArray}(x)
 }
 \arguments{
 \item{x}{A \link{DSArray} object.}
 
-\item{...}{\link{DSArray} objects. The dimensions of all the \link{DSArray}
-objects must match, except on one dimension (specified by \code{along}).}
+\item{value}{Replacement value}
 
-\item{along}{The dimension along which to bind the DSArray objects.
-Currently, only binding by row (\code{along = 1}) or binding by column
-(\code{along = 2}) is supported.}
+\item{i, j, k}{Indices specifying elements to extract or replace. Indices are
+\code{numeric} or \code{character} vectors or empty (missing). \code{i}
+indexes rows, \code{j} indexes columns, and \code{k} indexes slices.
+\code{i}, \code{j}, and \code{k} can be logical vectors, indicating
+elements/slices to select. Such vectors are recycled if necessary to match
+the corresponding extent. Indexing by negative values, matrix \code{i}, or
+\code{NULL} indices are not currently implemented.}
+
+\item{...}{\link{DSArray} objects. For \code{arbind}, the \code{ncol} and
+\code{nslice} of all objects must match, but the \code{nrow} may differ. For
+\code{acbind}, the \code{nrow} and \code{nslice} of all objects must match,
+but the \code{ncol} may differ.}
+
+\item{drop}{Currently ignored}
 }
 \description{
 The \code{DSArray} class provides compressed storage of 3-dimensional
@@ -109,7 +122,7 @@ formula for decrease in memory as a function of \code{nrow{x}},
 \code{ncol(x)}, and \code{sum(duplicated(x))}}.
 }
 
-\section{Supportyed Types}{
+\section{Supported Types}{
 
 R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
 \code{\link[base]{double}} (often called \code{\link[base]{numeric}}),
@@ -117,7 +130,10 @@ R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
 \code{\link[base]{raw}} arrays. The DSArray class currently supports all
 these types except \code{\link[base]{complex}} and \code{\link[base]{raw}}.
 }
+\author{
+Peter Hickey
+}
 \seealso{
-\code{\link{DSArray}}
+\code{\link{DSArray}}, \code{\link{DSArray-utils}}
 }
 

@@ -5,16 +5,9 @@
 ###   Logic: `&`, `|`
 ### -------------------------------------------------------------------------
 
-# TODO: Note that non-scalar ops require densifying and associated cost
-
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Arith: `+`, `-`, `*`, `^`, `%%`, `%/%`, `/`
-###
-
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
-#'
-#' @export
+#' @rdname DSArray-utils
 setMethod("Ops", c("DSArray", "vector"),
           function(e1, e2) {
             n1 <- length(e1)
@@ -31,8 +24,7 @@ setMethod("Ops", c("DSArray", "vector"),
 
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Ops
-#'
-#' @export
+#' @rdname DSArray-utils
 setMethod("Ops", c("vector", "DSArray"),
           function(e1, e2) {
             n1 <- length(e1)
@@ -47,8 +39,12 @@ setMethod("Ops", c("vector", "DSArray"),
           }
 )
 
-# NOTE: Currently no Ops methods for signature c("DSArray", "DSArray") are
-#       implemented. Can revisit if there is a use case. Will generally be
-#       difficult without "densifying" unless the dimensions of e1 and e2 are
-#       identical (and even then it may still be difficult/impossible to avoid
-#       the "densifying").
+#' @importFrom methods callGeneric setMethod
+#' @importMethodsFrom methods Ops
+#' @rdname DSArray-utils
+setMethod("Ops", c("DSArray", "DSArray"),
+          function(e1, e2) {
+            return(DSArray(callGeneric(.densify(e1, warn = TRUE),
+                                       .densify(e2, warn = TRUE))))
+          }
+)
