@@ -721,4 +721,11 @@ setAs("DSArray", "array",
 ### show
 ###
 
-# TODO: Print class, dimensions (and the first few rows)?
+#' @importFrom methods setMethod
+#' @export
+setMethod("show", "DSArray",
+          function(object) {
+            cat("class:", class(object), "\n")
+            cat("dim:", dim(object), "\n")
+          }
+)
