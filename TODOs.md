@@ -12,4 +12,5 @@ There are probably many more.
 
 Package dependencies
 
-- [ ] Having SummarizedExperiment in Suggests greatly increases build times on Travis due to its many dependencies (and their dependencies)
+- [x] Having SummarizedExperiment in Suggests greatly increases build times on Travis due to its many dependencies (and their dependencies)
+  - Can't move it because we now use `arbind()` and `acbind()` from SummarizedExperiment 
