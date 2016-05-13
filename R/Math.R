@@ -22,7 +22,7 @@ setMethod("Math", "DSArray",
 #       so, they first densify the DSArray. This densifying is probably
 #       avoidable but it's a low priority for me.
 #' @importFrom methods callGeneric setMethod
-#' @importMethodsFrom methods Ops
+#' @importMethodsFrom methods Math
 #'
 #' @rdname DSArray-utils
 setMethod("cummax", "DSArray",
@@ -32,7 +32,7 @@ setMethod("cummax", "DSArray",
 )
 
 #' @importFrom methods callGeneric setMethod
-#' @importMethodsFrom methods Ops
+#' @importMethodsFrom methods Math
 #'
 #' @rdname DSArray-utils
 setMethod("cummin", "DSArray",
@@ -42,7 +42,7 @@ setMethod("cummin", "DSArray",
 )
 
 #' @importFrom methods callGeneric setMethod
-#' @importMethodsFrom methods Ops
+#' @importMethodsFrom methods Math
 #'
 #' @rdname DSArray-utils
 setMethod("cumprod", "DSArray",
@@ -52,7 +52,7 @@ setMethod("cumprod", "DSArray",
 )
 
 #' @importFrom methods callGeneric setMethod
-#' @importMethodsFrom methods Ops
+#' @importMethodsFrom methods Math
 #'
 #' @rdname DSArray-utils
 setMethod("cumsum", "DSArray",
