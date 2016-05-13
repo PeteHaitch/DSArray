@@ -279,6 +279,17 @@ setMethod("DSArray", "array",
           }
 )
 
+#' @rdname DSArray
+#' @inheritParams DSArray,matrix-method
+#' @importFrom methods setMethod
+#'
+#' @export
+setMethod("DSArray", "missing",
+          function(x, ...) {
+            DSArray(matrix(), ...)
+          }
+)
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Getters and setters
 ###
