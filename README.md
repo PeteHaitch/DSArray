@@ -7,10 +7,10 @@
 
 ---
 
-DSArray ("_desiree_") provides efficient storage of 3-dimensional arrays with 
-many duplicate slices via the DSArray (**D**uplicate **S**lice **Array**) S4 
-class. A basic array-like API is provided for instantiating, subsetting, and 
-combining DSArray objects.
+DSArray ("_desiree_") provides efficient in-memory representation of 
+3-dimensional arrays with many duplicate slices via the DSArray (**D**uplicate 
+**S**lice **Array**) S4 class. A basic array-like API is provided for 
+instantiating, subsetting, and combining DSArray objects.
 
 ---
 
