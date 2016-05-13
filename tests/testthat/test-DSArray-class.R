@@ -172,10 +172,11 @@ test_that("subsetting a DSArray by i works or errors on bad input", {
   lapply(i, function(ii) {
     expect_true(dsa_identical_to_array(xx[ii, , ], x[ii, , , drop = FALSE]))
     expect_identical(.extract_DSArray_subset(x = xx, i = ii), xx[ii, , ])
-    expect_true(dsa_identical_to_array(xx[as.character(ii), , ],
-                                       x[as.character(ii), , , drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(x = xx, i = as.character(ii)),
-                     xx[as.character(ii), , ])
+    expect_true(dsa_identical_to_array(xx[as.character(100 + ii), , ],
+                                       x[as.character(100 + ii), , , drop = FALSE]))
+    expect_identical(
+      .extract_DSArray_subset(x = xx, i = as.character(100 + ii)),
+      xx[as.character(100 + ii), , ])
 
   })
   i <- lapply(c(1, 10), function(ii) rep(TRUE, times = ii))
@@ -188,10 +189,10 @@ test_that("subsetting a DSArray by i works or errors on bad input", {
   lapply(i_bad, function(ii) {
     expect_error(xx[ii, , ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii), msg)
-    expect_error(xx[as.character(ii), , ], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii)), msg)
+    expect_error(xx[as.character(100 + ii), , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii)),
+                 msg)
   })
-
 })
 
 test_that("subsetting a DSArray by j works or errors on bad input", {
@@ -252,12 +253,12 @@ test_that("subsetting a DSArray by (i, j) works or errors on bad input", {
   Map(function(ii, jj) {
     expect_true(dsa_identical_to_array(xx[ii, jj, ], x[ii, jj, , drop = FALSE]))
     expect_identical(.extract_DSArray_subset(xx, i = ii, j = jj), xx[ii, jj, ])
-    expect_true(dsa_identical_to_array(xx[as.character(ii), letters[jj], ],
-                                       x[as.character(ii), letters[jj], ,
+    expect_true(dsa_identical_to_array(xx[as.character(100 + ii), letters[jj], ],
+                                       x[as.character(100 + ii), letters[jj], ,
                                          drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(100 + ii),
                                              j = letters[jj]),
-                     xx[as.character(ii), letters[jj], , ])
+                     xx[as.character(100 + ii), letters[jj], , ])
   }, ii = i, jj = j)
   i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
   j_bad <- list(ncol(xx) + 1, 1:(ncol(xx) + 1))
@@ -265,16 +266,16 @@ test_that("subsetting a DSArray by (i, j) works or errors on bad input", {
   Map(function(ii, jj) {
     expect_error(xx[ii, jj, , ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
-    expect_error(xx[as.character(ii), letters[jj], ], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj]), msg)
   }, ii = i, jj = j_bad)
   msg <- "subscript i out of bounds"
   Map(function(ii, jj) {
     expect_error(xx[ii, jj, , ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
-    expect_error(xx[as.character(ii), letters[jj], ], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj]), msg)
   }, ii = c(i_bad, i_bad), jj = c(j[1:2], j_bad))
 })
@@ -285,12 +286,12 @@ test_that("subsetting a DSArray by (i, k) works or errors on bad input", {
   Map(function(ii, kk) {
     expect_true(dsa_identical_to_array(xx[ii, , kk], x[ii, , kk, drop = FALSE]))
     expect_identical(.extract_DSArray_subset(xx, i = ii, k = kk), xx[ii, , kk])
-    expect_true(dsa_identical_to_array(xx[as.character(ii), , LETTERS[kk]],
-                                       x[as.character(ii), , LETTERS[kk],
+    expect_true(dsa_identical_to_array(xx[as.character(100 + ii), , LETTERS[kk]],
+                                       x[as.character(100 + ii), , LETTERS[kk],
                                          drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(100 + ii),
                                              k = LETTERS[kk]),
-                     xx[as.character(ii), , LETTERS[kk], ])
+                     xx[as.character(100 + ii), , LETTERS[kk], ])
   }, ii = i, kk = k)
   i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
   k_bad <- list(nslice(xx) + 1, 1:(nslice(xx) + 1))
@@ -298,16 +299,16 @@ test_that("subsetting a DSArray by (i, k) works or errors on bad input", {
   Map(function(ii, kk) {
     expect_error(xx[ii, , kk, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
-    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          k = LETTERS[kk]), msg)
   }, ii = i, kk = k_bad)
   msg <- "subscript i out of bounds"
   Map(function(ii, kk) {
     expect_error(xx[ii, , kk, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
-    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), , LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          k = LETTERS[kk]), msg)
   }, ii = c(i_bad, i_bad), kk = c(k[1:2], k_bad))
 })
@@ -355,12 +356,12 @@ test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
     expect_identical(.extract_DSArray_subset(xx, i = ii, j = jj, k = kk),
                      xx[ii, jj, kk])
     expect_true(dsa_identical_to_array(
-      xx[as.character(ii), letters[jj], LETTERS[kk]],
-      x[as.character(ii), letters[jj], LETTERS[kk], drop = FALSE]))
-    expect_identical(.extract_DSArray_subset(xx, i = as.character(ii),
+      xx[as.character(100 + ii), letters[jj], LETTERS[kk]],
+      x[as.character(100 + ii), letters[jj], LETTERS[kk], drop = FALSE]))
+    expect_identical(.extract_DSArray_subset(xx, i = as.character(100 + ii),
                                              j = letters[jj],
                                              k = LETTERS[kk]),
-                     xx[as.character(ii), letters[jj], LETTERS[kk], ])
+                     xx[as.character(100 + ii), letters[jj], LETTERS[kk], ])
   }, ii = i, jj = j, kk = k)
   i_bad <- list(nrow(xx) + 1, 1:(nrow(xx) + 1))
   j_bad <- list(ncol(xx) + 1, 1:(ncol(xx) + 1))
@@ -369,8 +370,8 @@ test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]),
                  msg)
@@ -380,8 +381,8 @@ test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]),
                  msg)
@@ -390,8 +391,8 @@ test_that("subsetting a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]),
                  msg)
@@ -426,15 +427,15 @@ test_that("replacing a DSArray by i works or errors on bad input", {
                                                     value = vv))
     expect_identical(xx, xxx)
     x <- y
-    x[as.character(ii), , ] <- v
+    x[as.character(100 + ii), , ] <- v
     xx <- yy
-    suppressWarnings(xx[as.character(ii), , ] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), , ] <- vv)
     expect_true(dsa_identical_to_array(xx, x))
     xx <- yy
-    suppressWarnings(xx[as.character(ii), , ] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), , ] <- vv)
     xxx <- yy
     suppressWarnings(xxx <- .replace_DSArray_subset(x = xx,
-                                                    i = as.character(ii),
+                                                    i = as.character(100 + ii),
                                                     value = vv))
     expect_identical(xx, xxx)
   })
@@ -443,8 +444,9 @@ test_that("replacing a DSArray by i works or errors on bad input", {
   lapply(i_bad, function(ii) {
     expect_error(xx[ii, , ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii), msg)
-    expect_error(xx[as.character(ii), , ], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii)), msg)
+    expect_error(xx[as.character(100 + ii), , ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii)),
+                 msg)
   })
 })
 
@@ -554,15 +556,15 @@ test_that("replacing a DSArray by (i, j) works or errors on bad input", {
                                                     value = vv))
     expect_identical(xx, xxx)
     x <- y
-    x[as.character(ii), letters[jj], ] <- v
+    x[as.character(100 + ii), letters[jj], ] <- v
     xx <- yy
-    suppressWarnings(xx[as.character(ii), letters[jj], ] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), letters[jj], ] <- vv)
     expect_true(dsa_identical_to_array(xx, x))
     xx <- yy
-    suppressWarnings(xx[as.character(ii), letters[jj], ] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), letters[jj], ] <- vv)
     xxx <- yy
     suppressWarnings(xxx <- .replace_DSArray_subset(x = xx,
-                                                    i = as.character(ii),
+                                                    i = as.character(100 + ii),
                                                     j = letters[jj],
                                                     value = vv))
     expect_identical(xx, xxx)
@@ -573,17 +575,17 @@ test_that("replacing a DSArray by (i, j) works or errors on bad input", {
   Map(function(ii, jj) {
     expect_error(xx[ii, jj, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
-    expect_error(xx[as.character(ii), letters[jj], ], msg)
-    expect_error(.extract_DSArray_subset(x = xx, i = as.character(ii),
+    expect_error(xx[as.character(100 + ii), letters[jj], ], msg)
+    expect_error(.extract_DSArray_subset(x = xx, i = as.character(100 + ii),
                                          j = letters[jj]), msg)
   }, ii = c(i_bad, i_bad), jj = c(j[1:2], j_bad))
   msg <- "subscript j out of bounds"
   Map(function(ii, jj) {
     expect_error(xx[ii, jj, ], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj), msg)
-    expect_error(xx[as.character(ii), letters[jj], ], msg)
+    expect_error(xx[as.character(100 + ii), letters[jj], ], msg)
     expect_error(.extract_DSArray_subset(x = xx,
-                                         i = as.character(ii),
+                                         i = as.character(100 + ii),
                                          j = letters[jj]), msg)
   }, ii = i, jj = j_bad)
 })
@@ -610,15 +612,15 @@ test_that("replacing a DSArray by (i, k) works or errors on bad input", {
                                                     value = vv))
     expect_identical(xx, xxx)
     x <- y
-    x[as.character(ii), , LETTERS[kk]] <- v
+    x[as.character(100 + ii), , LETTERS[kk]] <- v
     xx <- yy
-    suppressWarnings(xx[as.character(ii), , LETTERS[kk]] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), , LETTERS[kk]] <- vv)
     expect_true(dsa_identical_to_array(xx, x))
     xx <- yy
-    suppressWarnings(xx[as.character(ii), , LETTERS[kk]] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), , LETTERS[kk]] <- vv)
     xxx <- yy
     suppressWarnings(xxx <- .replace_DSArray_subset(x = xx,
-                                                    i = as.character(ii),
+                                                    i = as.character(100 + ii),
                                                     k = LETTERS[kk],
                                                     value = vv))
     expect_identical(xx, xxx)
@@ -638,9 +640,9 @@ test_that("replacing a DSArray by (i, k) works or errors on bad input", {
   Map(function(ii, kk) {
     expect_error(xx[ii, , kk], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, k = kk), msg)
-    expect_error(xx[as.character(ii), , LETTERS[kk]], msg)
+    expect_error(xx[as.character(100 + ii), , LETTERS[kk]], msg)
     expect_error(.extract_DSArray_subset(x = xx,
-                                         i = as.character(ii),
+                                         i = as.character(100 + ii),
                                          k = LETTERS[kk]), msg)
   }, ii = i, kk = k_bad)
 })
@@ -726,15 +728,15 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
                                                     value = vv))
     expect_identical(xx, xxx)
     x <- y
-    x[as.character(ii), letters[jj], LETTERS[kk]] <- v
+    x[as.character(100 + ii), letters[jj], LETTERS[kk]] <- v
     xx <- yy
-    suppressWarnings(xx[as.character(ii), letters[jj], LETTERS[kk]] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), letters[jj], LETTERS[kk]] <- vv)
     expect_true(dsa_identical_to_array(xx, x))
     xx <- yy
-    suppressWarnings(xx[as.character(ii), letters[jj], LETTERS[kk]] <- vv)
+    suppressWarnings(xx[as.character(100 + ii), letters[jj], LETTERS[kk]] <- vv)
     xxx <- yy
     suppressWarnings(xxx <- .replace_DSArray_subset(x = xx,
-                                                    i = as.character(ii),
+                                                    i = as.character(100 + ii),
                                                     j = letters[jj],
                                                     k = LETTERS[kk],
                                                     value = vv))
@@ -747,9 +749,9 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
     expect_error(.extract_DSArray_subset(x = xx,
-                                         i = as.character(ii),
+                                         i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]), msg)
   }, ii = c(i_bad, i_bad, i_bad, i_bad), jj = c(j[1:2], j_bad, j[1:2], j_bad),
@@ -758,9 +760,9 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
     expect_error(.extract_DSArray_subset(x = xx,
-                                         i = as.character(ii),
+                                         i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]), msg)
   }, ii = c(i[1:2], i[1:2]), jj = c(j_bad, j_bad), kk = c(k[1:2], k_bad))
@@ -768,9 +770,9 @@ test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   Map(function(ii, jj, kk) {
     expect_error(xx[ii, jj, kk], msg)
     expect_error(.extract_DSArray_subset(x = xx, i = ii, j = jj, k = kk), msg)
-    expect_error(xx[as.character(ii), letters[jj], LETTERS[kk]], msg)
+    expect_error(xx[as.character(100 + ii), letters[jj], LETTERS[kk]], msg)
     expect_error(.extract_DSArray_subset(x = xx,
-                                         i = as.character(ii),
+                                         i = as.character(100 + ii),
                                          j = letters[jj],
                                          k = LETTERS[kk]), msg)
   }, ii = i, jj = j, kk = k_bad)
