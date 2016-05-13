@@ -14,6 +14,7 @@
 \alias{dimnames<-,DSArray,list-method}
 \alias{length,DSArray-method}
 \alias{nslice,DSArray-method}
+\alias{show,DSArray-method}
 \alias{slicenames,DSArray-method}
 \alias{slicenames<-,DSArray,NULL-method}
 \alias{slicenames<-,DSArray,character-method}
@@ -46,9 +47,11 @@
 \S4method{acbind}{DSArray}(...)
 
 \S4method{densify}{DSArray}(x)
+
+\S4method{show}{DSArray}(object)
 }
 \arguments{
-\item{x}{A \link{DSArray} object.}
+\item{x, object}{A \linkS4class{DSArray} object}
 
 \item{value}{Replacement value}
 

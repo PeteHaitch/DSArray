@@ -297,7 +297,7 @@ setMethod("DSArray", "missing",
 ### dim
 
 #' @rdname DSArray-class
-#' @param x A \link{DSArray} object.
+#' @param x,object A \linkS4class{DSArray} object
 #' @importFrom methods setMethod slot
 #'
 #' @export
@@ -721,7 +721,10 @@ setAs("DSArray", "array",
 ### show
 ###
 
+#' @rdname DSArray-class
+#'
 #' @importFrom methods setMethod
+#'
 #' @export
 setMethod("show", "DSArray",
           function(object) {

@@ -6,6 +6,7 @@
 \alias{DSArray,array-method}
 \alias{DSArray,list-method}
 \alias{DSArray,matrix-method}
+\alias{DSArray,missing-method}
 \title{DSArray constructor}
 \usage{
 DSArray(x, ...)
@@ -15,6 +16,8 @@ DSArray(x, ...)
 \S4method{DSArray}{list}(x, dimnames = NULL)
 
 \S4method{DSArray}{array}(x, MARGIN = 2L, dimnames = NULL)
+
+\S4method{DSArray}{missing}(x, ...)
 }
 \arguments{
 \item{x}{A 3-dimensional \link[base]{array}, a \link[base]{list} of
