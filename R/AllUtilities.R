@@ -15,11 +15,17 @@ setMethod(".sparsify", "data.table",
               if (any(grepl("^\\.my", colnames(x)))) {
                 stop("'x' must not have colnames beginning with '.my'")
               }
+              if ("rn" %in% colnames(x)) {
+                warning("'rn' column dropped")
+                rn <- x[, rn]
+                x[, rn := NULL]
+              } else {
+                rn <- NULL
+              }
               x[, .myI := .I]
               # Set the key (kind of like hashing the rows of the data.table
               # since we use all columns).
               my_key <- grep(".myI", colnames(x), value = TRUE, invert = TRUE)
-              my_key <- grep("rn", my_key, value = TRUE, invert = TRUE)
               setkeyv(x, cols = my_key)
 
               # Create the key and val
@@ -30,14 +36,7 @@ setMethod(".sparsify", "data.table",
               # TODO: Currently using a circuitous way to get the desired result
               return(.sparsify(matrix(dimnames = list(NULL, colnames(x)))))
             }
-            # Fix the dimnames
-            if ("rn" %in% colnames(val)) {
-              rn <- val[, rn]
-              val <- as.matrix(val[, rn := NULL])
-              names(key) <- rn[key]
-            } else {
-              val <- as.matrix(val)
-            }
+            val <- as.matrix(val)
             # NOTE: Need to NULL-ify rownames differently depending on colnames,
             #       otherwise some downstream identical() checks can fail.
             # TODO: Check the logic of this conditional
@@ -50,9 +49,12 @@ setMethod(".sparsify", "data.table",
             key <- as.matrix(key)
             # NOTE: Really a no-op but ensures identical() passes in some
             #       unit tests
+            # TODO: Is this still required?
             dimnames(key) <- list(NULL, NULL)
             # Return the result
-            new("DSArray", key = key, val = val)
+            dsa <- new("DSArray", key = key, val = val)
+            rownames(dsa) <- rn
+            dsa
           }
 )
 # To avoid WARNINGs about "Undefined global functions or variables" in
@@ -74,15 +76,17 @@ setMethod(".sparsify", "matrix",
             } else {
               cn <- NULL
             }
-            x <- as.data.table(x, keep.rownames = !is.null(rownames(x)))
+            rn <- row.names(x)
+            x <- as.data.table(x, keep.rownames = FALSE)
+            # TODO: Is this still needed?
             if (!is.null(cn)) {
-              if ("rn" %in% colnames(x)) {
-                setnames(x, c("rn", cn))
-              } else if (!identical(colnames(x), character(0))) {
+              if (!identical(colnames(x), character(0))) {
                 setnames(x, cn)
               }
             }
-            .sparsify(x)
+            x <- .sparsify(x)
+            row.names(x) <- rn
+            x
           }
 )
 
@@ -98,16 +102,19 @@ setMethod(".sparsify", "matrix",
 #' @importFrom methods setMethod
 setMethod(".sparsify", "data.frame",
           function(x, ...) {
+            rn <- rownames(x)
             # Convert input to data.table by reference
             # NOTE: Retain colnames for same behaviour as
             #       .sparsify,matrix-method
             if (nrow(x)) {
-              setDT(x, keep.rownames = TRUE)
+              setDT(x, keep.rownames = FALSE)
             } else {
               # TODO: Currently using a circuitous way to get the desired result
               setDT(x, keep.rownames = FALSE)
             }
-            .sparsify(x)
+            x <- .sparsify(x)
+            rownames(x) <- rn
+            x
           }
 )
 
