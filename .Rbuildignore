@@ -4,3 +4,5 @@ sandpit/
 .travis.yml
 appveyor.yml
 TODOs.md
+^README\.Rmd$
+^README-.*\.png$

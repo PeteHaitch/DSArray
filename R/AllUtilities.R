@@ -7,6 +7,7 @@
 #' @author Peter Hickey
 #' @importFrom methods new setMethod
 #' @importFrom data.table := .GRP .I key setkey setkeyv
+#' @keywords internal
 setMethod(".sparsify", "data.table",
           function(x, ...) {
             # NOTE: Will otherwise get errors if data have zero rows.
@@ -65,6 +66,7 @@ globalVariables(c(".myI", ".myKey"))
 #' @author Peter Hickey
 #' @importFrom data.table as.data.table data.table setnames
 #' @importFrom methods setMethod
+#' @keywords internal
 setMethod(".sparsify", "matrix",
           function(x, ...) {
             # Convert input to data.table
@@ -100,6 +102,7 @@ setMethod(".sparsify", "matrix",
 #' @author Peter Hickey
 #' @importFrom data.table setDT
 #' @importFrom methods setMethod
+#' @keywords internal
 setMethod(".sparsify", "data.frame",
           function(x, ...) {
             rn <- rownames(x)
@@ -121,6 +124,7 @@ setMethod(".sparsify", "data.frame",
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
 #' @author Peter Hickey
+#' @keywords internal
 .validate_DSArray_subscript <- function(x, i, j, k) {
   if (!missing(i) &&
       ((is.numeric(i) && isTRUE(any(i > nrow(x)))) ||
@@ -143,6 +147,7 @@ setMethod(".sparsify", "data.frame",
 # TODO: This function is called purely for its side effects. What's the
 #       appropriate return value?
 #' @author Peter Hickey
+#' @keywords internal
 .validate_DSArray_value_dim <- function(value, i, j, k, x) {
   value_dim <- dim(value)
   if (missing(i) && missing(j)) {
@@ -180,6 +185,7 @@ setMethod(".sparsify", "data.frame",
 #       column-slice of the resulting 3-dimensional array. This is different to
 #       what base::simplify2array() returns.
 #' @author Peter Hickey
+#' @keywords internal
 .list_to_array <- function(l, dim = NULL, dimnames = NULL) {
   if (is.null(dim)) {
     dim <- c(dim(l[[1]]), length(l))
@@ -190,6 +196,7 @@ setMethod(".sparsify", "data.frame",
 # TODO: Make a densify(x, simplify = TRUE) S4 generic and method. It should
 #       call .densify(x, simplify = simplify, warn = FALSE).
 #' @author Peter Hickey
+#' @keywords internal
 .densify <- function(x, simplify = TRUE, warn = TRUE) {
   if (warn) {
     warning(paste0("Densifying. This can cause a large increase ",
@@ -206,4 +213,92 @@ setMethod(".sparsify", "data.frame",
   } else {
     l
   }
+}
+
+# TODO: This might belong somewhere else e.g., in vignette
+#' Draw schematic of a DSArray object
+#' @author Peter Hickey
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom stats rpois
+#' @importFrom graphics arrows text plot polygon
+#' @importFrom grDevices grey
+#' @keywords internal
+.drawDSArray <- function(n = 3, nrow = 100, ncol = 8, n_unique_rows = 8,
+                         colours = brewer.pal(n_unique_rows - 1, "Set3"),
+                         prob = rpois(n_unique_rows - 1, 7),
+                         offset = ncol / 2 + n) {
+
+  xlim <- c(0, n * (ncol + 0.5) + offset + n + ncol)
+  ylim <- c(0, nrow + 0.1 * nrow)
+  plot(1, 1, type = "n", xlim = xlim, ylim = ylim, xaxt = "n", yaxt = "n",
+       xlab = "", ylab = "", bty = "n")
+  cols <- mapply(function(s) {
+    sample(c(colours, grey(s / n)), nrow, replace = TRUE,
+           prob = c(prob, 2 * max(prob)))
+  }, s = seq_len(n))
+
+  for (i in seq_len(nrow)) {
+    for (s in seq_len(n)) {
+      # Draw x
+      for (j in seq_len(ncol)) {
+        x <- c(j - 1, j - 1, j, j) + (s - 1) * (ncol + 0.5)
+        y <- c(nrow - i, nrow - i + 1, nrow - i + 1, nrow - i)
+        col <- cols[i, s]
+        polygon(x = x, y = y, col = col)
+      }
+      # Draw key
+      x <- c(n * ncol + (n - 1) * 0.5 + offset,
+             n * ncol + (n - 1) * 0.5 + offset,
+             n * ncol + (n - 1) * 0.5 + offset + 1,
+             n * ncol + (n - 1) * 0.5 + offset + 1) +
+        (s - 1)
+      y <- c(nrow - i, nrow - i + 1, nrow - i + 1, nrow - i)
+      col <- cols[i, s]
+      polygon(x = x, y = y, col = col)
+    }
+  }
+  # Rows of val (colours) are always sorted
+  uc <- sort(unique(as.vector(cols)))
+  # Draw val
+  for (k in seq_along(uc)) {
+    for (j in seq_len(ncol)) {
+      x <- j +
+        c(n * ncol + (n - 1) * 0.5 + offset + n + 0.5,
+          n * ncol + (n - 1) * 0.5 + offset + n + 0.5,
+          n * ncol + (n - 1) * 0.5 + offset + n + 1.5,
+          n * ncol + (n - 1) * 0.5 + offset + n + 1.5)
+      y <- c(nrow - k, nrow - k + 1, nrow - k + 1, nrow - k)
+      col = uc[k]
+      polygon(x = x, y = y, col = col)
+    }
+  }
+
+  # Draw arrow
+  x0 <- n * (ncol + 0.5)
+  y0 <- nrow / 2
+  x1 <- n * (ncol + 0.5) + offset - 1
+  y1 <- nrow / 2
+  arrows(x0 = x0, y0 = y0, x1 = x1, y1 = y1)
+
+  # Draw labels
+  for (s in seq_len(n)) {
+    x <- ncol / 2 + (s - 1) * (ncol + 0.5)
+    y <- nrow + 0.05 * nrow
+    at <- c(ncol / 2 + (s - 1) * (ncol + 0.5), nrow + 1)
+    text(x = x, y = y, paste0("x[, ", s, ", ]"), family = "mono")
+  }
+  text(x = n * ncol + (n - 1) * 0.5 + offset / 2,
+       y = nrow / 2 + 0.1 * nrow,
+       labels = "DSArray(x)",
+       family = "mono", cex = 0.8)
+  text(x = c(n * ncol + (n - 1) * 0.5 + offset + n / 2,
+             n * ncol + (n - 1) * 0.5 + offset + n + 1.5 + ncol / 2),
+       y = c(nrow + 0.05 * nrow, nrow + 0.05 * nrow),
+       labels = c("key", "val"))
+  # x <- c(n * ncol + (n - 1) * 0.5 + offset / 2,
+  #        n * ncol + (n - 1) * 0.5 + offset + n / 2,
+  #        n * ncol + (n - 1) * 0.5 + offset + n + 1.5 + ncol / 2)
+  # y <- c(nrow / 2 + 0.1 * nrow, nrow + 0.05 * nrow, nrow + 0.05 * nrow)
+  # labels <- c("DSArray(x)", "key", "val")
+  # text(x, y, labels)
 }

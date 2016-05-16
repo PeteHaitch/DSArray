@@ -721,10 +721,11 @@ setAs("DSArray", "array",
 ### show
 ###
 
+# TODO: See show,HDF5Array-method, which gives useful information and shows a
+#       head/tail of the data
+
 #' @rdname DSArray-class
-#'
 #' @importFrom methods setMethod
-#'
 #' @export
 setMethod("show", "DSArray",
           function(object) {

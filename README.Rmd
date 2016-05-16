@@ -1,0 +1,137 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+[![Project Status: Wip - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/0.1.0/wip.svg)](http://www.repostatus.org/#wip)
+[![Linux Build Status](https://travis-ci.org/PeteHaitch/DSArray.svg?branch=master)](https://travis-ci.org/PeteHaitch/DSArray)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/PeteHaitch/DSArray?svg=true)](https://ci.appveyor.com/project/PeteHaitch/DSArray)
+[![Coverage Status](https://img.shields.io/codecov/c/github/PeteHaitch/DSArray/master.svg)](https://codecov.io/github/PeteHaitch/DSArray?branch=master)
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+R package: DSArray
+---
+
+DSArray ("_desiree_") provides efficient in-memory representation of 
+3-dimensional arrays with many duplicate slices via the DSArray (**D**uplicate 
+**S**lice **Array**) S4 class. A basic array-like API is provided for 
+instantiating, subsetting, and combining DSArray objects.
+
+#### What the hell do I do with this?
+
+This package serves a niche purpose. However, since I've found it useful, I'm making it publicly available. Here is the problem in words and a picture illustrating the solution that _DSArray_ offers.
+
+Suppose you have data on a set of `n` samples where each sample's data can be represented as a matrix (`x1`, ..., `xn`) where `dim(x1) = ... = dim(xn) = c(nrow, ncol)`. We can combine these matrices along a given dimension to form a 3-dimensional array, `x`. _DSArray_ is designed for the special case where there are many duplicate _slices_ of `x`. Continuing our example, if each of the `x1`, ..., `xn` have duplicate rows and we combine `x1`, ..., `xn` to form `x` such that `x[, j, ]` represents `xj`, then for this special case we can efficiently represent the data by storing only the unique rows of the `x1`, ..., `xn` and an associated index. A picture will hopefully help make this clearer:
+
+```{r echo = FALSE}
+# TODO: Figure doesn't look the same in vignette as it does in RStudio
+n <- 3
+nrow <- 20
+ncol = 8
+DSArray:::.drawDSArray(n = 3, nrow = 20, ncol = 8)
+```
+
+We have `n = 3` matrices, each shown as a slice of `x` (`x[, 1, ]`, `x[, 2, ]`, `x[, 3, ]`) with `nrow = 20` and `ncol = 8`, where the colour of the row identifies identical rows. Note that the same row may be found multiple times within a sample and may also be common to multiple samples. We can construct the _DSArray_ representation of `x` by calling `DSArray(x)`. The _DSArray_ representation has a _key_ and a _val_, much like an associative array, map, or dictionary. The j-th column of the _key_ is the key for the j-th sample (note the colour ordering of each sample). The _val_ contains all __unique__ rows found in the `n` samples.
+
+We can reconstruct the data for a particular sample by expanding the _val_ by the relevant column of the _key_. We can often compute the required summaries of the data while retaining this sparse representation. In this way, a _DSArray_ is similar to using a run length encoding of a vector or a sparse matrix representation to leverage the additional structure in the object[^sparse_matrix].
+
+[^sparse_matrix]: _DSArray_ objects are compared to sparse matrix objects in the package vignette (__TODO__: Link to rendered version) and shown to be useful for a special case I encountered.
+  
+### Install DSArray
+
+You can get the development version from GitHub:
+
+```{r eval = FALSE}
+devtools::install_github("PeteHaitch/DSArray")
+```
+
+## Demo
+
+### Load _DSArray_ and example data
+
+This demo uses a small example dataset to demonstrate the API. However, it is only really beneficial to use a _DSArray_ object instead of a `base::array` when the dimensions of the object are large and there are many duplicate slices (this is demonstrated at the end of the demo).
+
+```{r load-package}
+library("DSArray")
+# TODO: Load data
+```
+
+- Load some data
+  - Show saving made by DSArray representation (`pryr::object_size()`)
+
+### API
+
+The _DSArray_ API is written to mimic the `base::array` API so that as much as much as possible a _DSArray_ can be used as a drop-in replacement for a `base::array` when the need arises.
+
+
+- Importantly, the _DSArray_ API is writen to mimic the `base::array` API so that _DSArray_ objects behave as if they were 3-dimensional `base::array` objects.
+  - Show some operations on the DSArray representation and that result is identical to array representation
+  - Demonstrate leveraging the sparse representation
+- Demo within SummarizedExperiment (save for vignette)
+- Comparison to ?`dgCMatrix-class` (save for vignette)
+- Plot of memory savings for different `nrow`, `ncol`, `n` and `duplicate_rate`.
+
+### Overview of functions
+
+- Explain which functions are optimally implemented and show as table (save for vignette)
+
+```{r include = FALSE}
+fxn_table <-
+"fxn,description
+gs_ls(), List Sheets
+gs_title(), Register a Sheet by title
+gs_key(), Register a Sheet by key
+gs_url(), Register a Sheet by URL
+gs_gs(), Re-register a `googlesheet`
+gs_browse(), Visit a registered `googlesheet` in the browser
+gs_read(), Read data and let `googlesheets` figure out how
+gs_read_csv(), Read explicitly via the fast exportcsv link
+gs_read_listfeed(), Read explicitly via the list feed
+gs_read_cellfeed(), Read explicitly via the cell feed
+gs_reshape_cellfeed(), Reshape cell feed data into a 2D thing
+gs_simplify_cellfeed(), Simplify cell feed data into a 1D thing
+gs_edit_cells(), Edit specific cells
+gs_add_row(), Append a row to pre-existing data table
+gs_new(), Create a new Sheet and optionally populate
+gs_copy(), Copy a Sheet into a new Sheet
+gs_rename(), Rename an existing Sheet
+gs_ws_ls(), List the worksheets in a Sheet
+gs_ws_new(), Create a new worksheet and optionally populate
+gs_ws_rename(), Rename a worksheet
+gs_ws_delete(), Delete a worksheet
+gs_delete(), Delete a Sheet
+gs_grepdel(), Delete Sheets with matching titles
+gs_vecdel(), Delete the named Sheets 
+gs_upload(), Upload local file into a new Sheet
+gs_download(), Download a Sheet into a local file
+gs_auth(), Authorize the package
+gs_deauth(), De-authorize the package
+gs_user(), Get info about current user and auth status
+gs_webapp_auth_url(), Facilitates auth by user of a Shiny app
+gs_webapp_get_token(), Facilitates auth by user of a Shiny app
+gs_gap(), Registers a public Gapminder-based Sheet (for practicing)
+gs_gap_key(), Key of the Gapminder practice Sheet
+gs_gap_url(), Browser URL for the Gapminder practice Sheet
+"
+```
+
+```{r as.is = TRUE, echo = FALSE, eval = FALSE}
+knitr::kable(read.csv(text = fxn_table))
+```
+
+### Vignettes
+
+An extended demonstration of _DSArray_ demo can be found in the package vignette (__TODO__: Link to rendered version) including:
+
+- Using _DSArray_ objects in a _SummarizedExperiment_ object
+- A discussion of optimally implemented methods for _DSArray_ objects
+- Future work
+
