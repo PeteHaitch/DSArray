@@ -6,6 +6,12 @@
 ### DSArray class
 ###
 
+# NOTE: The maximum nrow is .Machine$integer.max. While it's fairly simple to
+#       support objects with more rows, I want to ensure that whenever possible
+#       the 'key' slot has storage.mode() 'integer' to save space. If I allow
+#       'key' slot to have storage.mode() 'double' then I still need to ensure
+#       that these are "integer-like", i.e., positive whole numbers.
+
 #' Duplicate slice arrays
 #'
 #' The \code{DSArray} class provides compressed storage of 3-dimensional
@@ -47,9 +53,21 @@
 #' \code{x} contains many duplicate \code{(i,j)}-slices since this ensures
 #' that \code{nrow(val)} is much smaller than \code{nrow(x)}. Furthermore, the
 #' DSArray representation of \code{x} becomes proportionally more efficient as
-#' the number of slices (\code{dim(x)[3]}) increases. \strong{TODO: explicit
-#' formula for decrease in memory as a function of \code{nrow{x}},
-#' \code{ncol(x)}, and \code{sum(duplicated(x))}}.
+#' the number of slices (\code{dim(x)[3]}) increases. For a fixed
+#' \code{nrow(x)}, the relative efficiency of \code{DSArray(x)} compared to
+#' \code{x} increases linearly in the proportion of duplicate
+#' \code{(i,j)}-slices. More specifically, the relative memory
+#' usage of \code{DSArray(x)} compared to \code{x} is proportional to:
+#' \code{4 / (dim(x)[3] * s) +
+#'  sum(duplicated(apply(x, 3, I))) / (nrow(x) * ncol(x))} where \code{s = 4}
+#' for \code{\link[base]{integer}} arrays and \code{s = 8} for
+#' \code{\link[base]{numeric}} arrays. Note that this means if
+#' \code{dim(x)[3] < 2} then \code{DSArray(x)} always uses more memory than
+#' \code{x}.
+#'
+#' The maximum number of rows of a DSArray object is currently
+#' \code{.Machine$integer.max}, approximately 2.1 billion rows on a 64-bit
+#' machine.
 #'
 #' @section Supported Types:
 #' R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
@@ -80,12 +98,6 @@ setClass("DSArray",
 ### Validity
 ###
 
-# TODO: Note that the maximum nrow is .Machine$integer.max. While it's pretty
-#       simply to support objects with more rows, I want to ensure that
-#       whenever possible the 'key' slot has storage.mode() 'integer' to save
-#       space. If I allow 'key' slot to have storage.mode() 'double' then I
-#       still need to ensure that these are "integer-like", i.e., positive
-#       whole numbers.
 .valid.DSArray.key <- function(x) {
   msg <- paste0("'key' slot of a ", class(x), " must be a matrix of ",
                 "positive integers (NAs not permitted)")
@@ -130,16 +142,17 @@ setValidity2("DSArray", .valid.DSArray)
 #                  and all data set to NA (like
 #                  array(dim = dim, dimnames = dimnames) does).
 
-# TODO: Document how dimnames are constructed; e.g., note that
-#       DSArray,method-method will have colnames set to NULL if the input
-#       matrix has dimnames.
-# TODO: Document that DSArray() is to new("DSArray") what array() is to
-#       new("array").
 #' DSArray constructor
 #'
 #' Construct a \link[=DSArray-class]{DSArray} from a 3-dimensional
 #' \link[base]{array}, a \link[base]{matrix}, or a \link[base]{list} of
 #' \link[base]{matrix} objects with identical dimensions.
+#'
+#' @details
+#' The difference between calling \code{DSArray()} without any arguments
+#' and calling \code{new("DSArray")} is like the difference between calling
+#' \code{array()} and calling \code{new("array")}; using the explicit
+#' constructor is to be preferred.
 #'
 #' @param x A 3-dimensional \link[base]{array}, a \link[base]{list} of
 #' \link[base]{matrix} objects with identical dimensions, or a
@@ -147,12 +160,27 @@ setValidity2("DSArray", .valid.DSArray)
 #' @param dimnames A \link[base]{dimnames} attribute for the DSArray: NULL or
 #' a list of length 3. An empty list is treated as \code{NULL}, a list of
 #' length one as row names, and a list of length two as row names and column
-#' names. \strong{TODO: Can the list be named, and are the list names used as
-#' names for the dimensions (see ?array)}. If \code{NULL}, the \code{dimnames}
-#' are constructed from \code{x}; see Dimnames.
+#' names. If \code{NULL}, the \code{dimnames} are constructed from \code{x};
+#' see 'Dimnames' below.
 #'
 #' @section Dimnames:
-#' \strong{TODO: Document how dimnames are constructed.}
+#' If the \code{dimnames} argument to the \code{DSArray} constructor is
+#' \code{NULL} then the dimnames of the returned DSArray object are constructed
+#' as follows:
+#' \itemize{
+#'  \item If \code{x} is an \link[base]{array}: use \code{dimnames(x)[MARGIN]}
+#'  for slicenames, and \code{dimnames(x)[-MARGIN]} as rownames and colnames of
+#'  the returned object, respectively.
+#'  \item If \code{x} is a \link[base]{list} of \link[base]{matrix} objects
+#'  with identical dimensions: rownames of the returned object are the rownames
+#'  of the first element \code{x} with non-\code{NULL} rownames; colnames of
+#'  the returned object are taken from \code{names(x)}; slicenames of the
+#'  returned object are the colnames of first element of \code{x} with
+#'  non-\code{NULL} colnames.
+#'  \item If \code{x} is a \link[base]{matrix}: use \code{rownames(x)} for
+#'  the rownames and \code{colnames(x)} for the slicenames of the returned
+#'  object, respectively. The colnames of the returned object are \code{NULL}.
+#' }
 #'
 #' @return A \link[=DSArray-class]{DSArray} object.
 #' @rdname DSArray
@@ -297,7 +325,7 @@ setMethod("DSArray", "missing",
 ### dim
 
 #' @rdname DSArray-class
-#' @param x,object A \linkS4class{DSArray} object
+#' @param x,object,value A \linkS4class{DSArray} object
 #' @importFrom methods setMethod slot
 #'
 #' @export
@@ -539,7 +567,6 @@ setMethod("[", "DSArray",
 
 ### [<-
 
-# TODO: What if value is an array not a DSArray?
 # NOTE: Like [<-,matrix-method, the original dimnames of x are preserved.
 #' @importFrom methods slot slot<-
 .replace_DSArray_subset <- function(x, i, j, k, value) {
@@ -587,10 +614,9 @@ setMethod("[", "DSArray",
 #' @importFrom methods setMethod
 #'
 #' @inheritParams `[,DSArray-method`
-#' @param value Replacement value
 #'
 #' @export
-setReplaceMethod("[", "DSArray",
+setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
                  function(x, i, j, k, ..., value) {
                    .replace_DSArray_subset(x, i, j, k, value)
                  }
@@ -694,7 +720,7 @@ setMethod("acbind", "DSArray",
           })
 
 ### combine
-### TODO
+### TODO (longterm): May be required for MethylationTuples
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Coercion
@@ -721,8 +747,8 @@ setAs("DSArray", "array",
 ### show
 ###
 
-# TODO: See show,HDF5Array-method, which gives useful information and shows a
-#       head/tail of the data
+# TODO (longterm): See show,HDF5Array-method, which gives useful information
+#                  and shows a head/tail of the data
 
 #' @rdname DSArray-class
 #' @importFrom methods setMethod

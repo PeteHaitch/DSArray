@@ -4,7 +4,7 @@
 \name{DSArray-class}
 \alias{DSArray-class}
 \alias{[,DSArray,ANY-method}
-\alias{[<-,DSArray,ANY,ANY,ANY-method}
+\alias{[<-,DSArray,ANY,ANY,DSArray-method}
 \alias{acbind,DSArray-method}
 \alias{arbind,DSArray-method}
 \alias{densify,DSArray-method}
@@ -40,7 +40,7 @@
 
 \S4method{[}{DSArray,ANY}(x, i, j, k, ..., drop = FALSE)
 
-\S4method{[}{DSArray,ANY,ANY,ANY}(x, i, j, k, ...) <- value
+\S4method{[}{DSArray,ANY,ANY,DSArray}(x, i, j, k, ...) <- value
 
 \S4method{arbind}{DSArray}(...)
 
@@ -51,9 +51,7 @@
 \S4method{show}{DSArray}(object)
 }
 \arguments{
-\item{x, object}{A \linkS4class{DSArray} object}
-
-\item{value}{Replacement value}
+\item{x, object, value}{A \linkS4class{DSArray} object}
 
 \item{i, j, k}{Indices specifying elements to extract or replace. Indices are
 \code{numeric} or \code{character} vectors or empty (missing). \code{i}
@@ -120,9 +118,21 @@ As noted above, the DSArray representation of \code{x} is only worthwhile if
 \code{x} contains many duplicate \code{(i,j)}-slices since this ensures
 that \code{nrow(val)} is much smaller than \code{nrow(x)}. Furthermore, the
 DSArray representation of \code{x} becomes proportionally more efficient as
-the number of slices (\code{dim(x)[3]}) increases. \strong{TODO: explicit
-formula for decrease in memory as a function of \code{nrow{x}},
-\code{ncol(x)}, and \code{sum(duplicated(x))}}.
+the number of slices (\code{dim(x)[3]}) increases. For a fixed
+\code{nrow(x)}, the relative efficiency of \code{DSArray(x)} compared to
+\code{x} increases linearly in the proportion of duplicate
+\code{(i,j)}-slices. More specifically, the relative memory
+usage of \code{DSArray(x)} compared to \code{x} is proportional to:
+\code{4 / (dim(x)[3] * s) +
+ sum(duplicated(apply(x, 3, I))) / (nrow(x) * ncol(x))} where \code{s = 4}
+for \code{\link[base]{integer}} arrays and \code{s = 8} for
+\code{\link[base]{numeric}} arrays. Note that this means if
+\code{dim(x)[3] < 2} then \code{DSArray(x)} always uses more memory than
+\code{x}.
+
+The maximum number of rows of a DSArray object is currently
+\code{.Machine$integer.max}, approximately 2.1 billion rows on a 64-bit
+machine.
 }
 
 \section{Supported Types}{

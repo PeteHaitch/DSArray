@@ -34,14 +34,13 @@ setMethod(".sparsify", "data.table",
               key <- setkey(x[, list(.myI, .myKey)], .myI)[, .myKey]
               val <- unique(x)[, c(".myI", ".myKey") := NULL]
             } else {
-              # TODO: Currently using a circuitous way to get the desired result
+              # TODO (longterm): Currently using a circuitous way to get the
+              #                  desired result
               return(.sparsify(matrix(dimnames = list(NULL, colnames(x)))))
             }
             val <- as.matrix(val)
             # NOTE: Need to NULL-ify rownames differently depending on colnames,
             #       otherwise some downstream identical() checks can fail.
-            # TODO: Check the logic of this conditional
-            # if (identical(colnames(val), paste0("V", seq_len(ncol(val))))) {
             if (any(grepl(".MY", colnames(x)))) {
               dimnames(val) <- list(NULL, NULL)
             } else {
@@ -50,7 +49,6 @@ setMethod(".sparsify", "data.table",
             key <- as.matrix(key)
             # NOTE: Really a no-op but ensures identical() passes in some
             #       unit tests
-            # TODO: Is this still required?
             dimnames(key) <- list(NULL, NULL)
             # Return the result
             dsa <- new("DSArray", key = key, val = val)
@@ -80,7 +78,6 @@ setMethod(".sparsify", "matrix",
             }
             rn <- row.names(x)
             x <- as.data.table(x, keep.rownames = FALSE)
-            # TODO: Is this still needed?
             if (!is.null(cn)) {
               if (!identical(colnames(x), character(0))) {
                 setnames(x, cn)
@@ -112,7 +109,8 @@ setMethod(".sparsify", "data.frame",
             if (nrow(x)) {
               setDT(x, keep.rownames = FALSE)
             } else {
-              # TODO: Currently using a circuitous way to get the desired result
+              # TODO (longterm): Currently using a circuitous way to get the
+              #                  desired result
               setDT(x, keep.rownames = FALSE)
             }
             x <- .sparsify(x)
@@ -121,8 +119,8 @@ setMethod(".sparsify", "data.frame",
           }
 )
 
-# TODO: This function is called purely for its side effects. What's the
-#       appropriate return value?
+# TODO (longterm): This function is called purely for its side effects. What's
+#                  the appropriate return value?
 #' @author Peter Hickey
 #' @keywords internal
 .validate_DSArray_subscript <- function(x, i, j, k) {
@@ -144,8 +142,8 @@ setMethod(".sparsify", "data.frame",
   invisible(x)
 }
 
-# TODO: This function is called purely for its side effects. What's the
-#       appropriate return value?
+# TODO (longterm): This function is called purely for its side effects. What's
+#                  the appropriate return value?
 #' @author Peter Hickey
 #' @keywords internal
 .validate_DSArray_value_dim <- function(value, i, j, k, x) {
@@ -193,8 +191,6 @@ setMethod(".sparsify", "data.frame",
   array(do.call("rbind", l), dim = dim, dimnames = dimnames)
 }
 
-# TODO: Make a densify(x, simplify = TRUE) S4 generic and method. It should
-#       call .densify(x, simplify = simplify, warn = FALSE).
 #' @author Peter Hickey
 #' @keywords internal
 .densify <- function(x, simplify = TRUE, warn = TRUE) {
@@ -215,7 +211,6 @@ setMethod(".sparsify", "data.frame",
   }
 }
 
-# TODO: This might belong somewhere else e.g., in vignette
 #' Draw schematic of a DSArray object
 #' @author Peter Hickey
 #' @importFrom RColorBrewer brewer.pal
@@ -295,10 +290,46 @@ setMethod(".sparsify", "data.frame",
              n * ncol + (n - 1) * 0.5 + offset + n + 1.5 + ncol / 2),
        y = c(nrow + 0.05 * nrow, nrow + 0.05 * nrow),
        labels = c("key", "val"))
-  # x <- c(n * ncol + (n - 1) * 0.5 + offset / 2,
-  #        n * ncol + (n - 1) * 0.5 + offset + n / 2,
-  #        n * ncol + (n - 1) * 0.5 + offset + n + 1.5 + ncol / 2)
-  # y <- c(nrow / 2 + 0.1 * nrow, nrow + 0.05 * nrow, nrow + 0.05 * nrow)
-  # labels <- c("DSArray(x)", "key", "val")
-  # text(x, y, labels)
+}
+
+#' Compute (theoretical) size of DSArray object
+#'
+#' Note, actual size may differ slightly due to how R allocates memory; see
+#' http://adv-r.had.co.nz/memory.html for details.
+#' @param nr Number of rows
+#' @param nc Number of columns
+#' @param sl Slice length
+#' @param nus Proportion of unique slices
+#' @param so Size of individual element (integer, numeric, character, etc. )
+#' in bytes (B)
+#' @return Total (approximate) size in bytes (B)
+#' @keywords internal
+.sizeDSArray <- function(nr, nc, sl, pus, so) {
+  stopifnot(pus <= 1 & pus >= 0)
+  nr * nc * 1 * 4 +
+    (1 - pus) * nr * nc * sl * so
+}
+
+#' Compute (theoretical) size of base::array object
+#'
+#' Note, actual size may differ slightly due to how R allocates memory; see
+#' http://adv-r.had.co.nz/memory.html for details.
+#' @inheritParams .sizeDSArray
+#' @return Total (approximate) size in bytes (B)
+#' @keywords internal
+.sizeBaseArray <- function(nr, nc, sl, pus, so) {
+  nr * nc * sl * so
+}
+
+#' Size ratio of DSArray to base::array
+#'
+#' @param sl Slice length
+#' @param nus Proportion of unique slices
+#' @param so Size of individual element (integer, numeric, character, etc. )
+#' in bytes (B)
+#' @return Ratio of (approximate) size of DSArray object to (approximate) size
+#' of base::array object.
+#' @keywords internal
+.sizeRatio <- function(sl, pus, so) {
+  4 / (sl * so) + (1 - pus)
 }

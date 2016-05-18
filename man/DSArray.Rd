@@ -29,9 +29,8 @@ DSArray(x, ...)
 \item{dimnames}{A \link[base]{dimnames} attribute for the DSArray: NULL or
 a list of length 3. An empty list is treated as \code{NULL}, a list of
 length one as row names, and a list of length two as row names and column
-names. \strong{TODO: Can the list be named, and are the list names used as
-names for the dimensions (see ?array)}. If \code{NULL}, the \code{dimnames}
-are constructed from \code{x}; see Dimnames.}
+names. If \code{NULL}, the \code{dimnames} are constructed from \code{x};
+see 'Dimnames' below.}
 
 \item{MARGIN}{An integer given the dimension number that indexes samples;
 see Examples. The default, \code{MARGIN = 2}, corresponds to columns of
@@ -45,9 +44,31 @@ Construct a \link[=DSArray-class]{DSArray} from a 3-dimensional
 \link[base]{array}, a \link[base]{matrix}, or a \link[base]{list} of
 \link[base]{matrix} objects with identical dimensions.
 }
+\details{
+The difference between calling \code{DSArray()} without any arguments
+and calling \code{new("DSArray")} is like the difference between calling
+\code{array()} and calling \code{new("array")}; using the explicit
+constructor is to be preferred.
+}
 \section{Dimnames}{
 
-\strong{TODO: Document how dimnames are constructed.}
+If the \code{dimnames} argument to the \code{DSArray} constructor is
+\code{NULL} then the dimnames of the returned DSArray object are constructed
+as follows:
+\itemize{
+ \item If \code{x} is an \link[base]{array}: use \code{dimnames(x)[MARGIN]}
+ for slicenames, and \code{dimnames(x)[-MARGIN]} as rownames and colnames of
+ the returned object, respectively.
+ \item If \code{x} is a \link[base]{list} of \link[base]{matrix} objects
+ with identical dimensions: rownames of the returned object are the rownames
+ of the first element \code{x} with non-\code{NULL} rownames; colnames of
+ the returned object are taken from \code{names(x)}; slicenames of the
+ returned object are the colnames of first element of \code{x} with
+ non-\code{NULL} colnames.
+ \item If \code{x} is a \link[base]{matrix}: use \code{rownames(x)} for
+ the rownames and \code{colnames(x)} for the slicenames of the returned
+ object, respectively. The colnames of the returned object are \code{NULL}.
+}
 }
 \author{
 Peter Hickey
