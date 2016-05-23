@@ -186,7 +186,7 @@ setMethod(".sparsify", "data.frame",
 #' @keywords internal
 .list_to_array <- function(l, dim = NULL, dimnames = NULL) {
   if (is.null(dim)) {
-    dim <- c(dim(l[[1]]), length(l))
+    dim <- c(nrow(l[[1]]), length(l), ncol(l[[1]]))
   }
   array(do.call("rbind", l), dim = dim, dimnames = dimnames)
 }
