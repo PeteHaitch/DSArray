@@ -221,7 +221,7 @@ setMethod(".sparsify", "data.frame",
 .drawDSArray <- function(n = 3, nrow = 100, ncol = 8, n_unique_rows = 8,
                          colours = brewer.pal(n_unique_rows - 1, "Set3"),
                          prob = rpois(n_unique_rows - 1, 7),
-                         offset = ncol / 2 + n) {
+                         offset = ncol / 2 + n) { # nocov start
 
   xlim <- c(0, n * (ncol + 0.5) + offset + n + ncol)
   ylim <- c(0, nrow + 0.1 * nrow)
@@ -290,7 +290,7 @@ setMethod(".sparsify", "data.frame",
              n * ncol + (n - 1) * 0.5 + offset + n + 1.5 + ncol / 2),
        y = c(nrow + 0.05 * nrow, nrow + 0.05 * nrow),
        labels = c("key", "val"))
-}
+} ## nocov end
 
 #' Compute (theoretical) size of DSArray object
 #'

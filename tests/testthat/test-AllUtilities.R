@@ -63,3 +63,42 @@ test_that(".sparsify returns something sensible on 0-row input", {
   expect_identical(.sparsify(data.frame()), DSArray(matrix()))
   expect_identical(.sparsify(data.table()), DSArray(matrix()))
 })
+
+test_that(".list_to_array works", {
+  l <- lapply(seq_len(ncol(x)), function(j) x[ , j, ])
+  expect_identical(.list_to_array(l, dim(x), dimnames(x)), x)
+  # Default dim should work
+  expect_identical(.list_to_array(l, dimnames = dimnames(x)), x)
+})
+
+test_that(".densify works", {
+  expect_warning(.densify(xx),
+                 "Densifying. This can cause a large increase in memory usage")
+  expect_warning(.densify(xx, warn = FALSE), NA)
+  expect_identical(.densify(xx, warn = FALSE), x)
+  expect_identical(.densify(xx, simplify = FALSE, warn = FALSE),
+                   mapply(function(j) x[, j, ], j = colnames(x),
+                          SIMPLIFY = FALSE))
+})
+
+test_that("Guessing the size of array and DSArray is (approximately) correct", {
+  x <- unname(x)
+  xx <- unname(xx)
+  nr <- nrow(x)
+  nc <- ncol(x)
+  sl <- dim(x)[3]
+  pus <- sum(!duplicated(apply(x, 3, I))) / (nrow(x) * ncol(x))
+  so <- 4L
+  expect_equal(.sizeBaseArray(nr, nc, sl, pus, so),
+               as.numeric(object.size(x)),
+               tolerance = 10e-2)
+  expect_equal(.sizeDSArray(nr, nc, sl, pus, so),
+               as.numeric(object.size(xx)),
+               tolerance = 10e-2)
+  expect_equal(.sizeRatio(sl, pus, so),
+               4 / (sl* so) + (1 - pus),
+               tolerance = 10e-2)
+  expect_equal(.sizeRatio(sl, pus, so),
+               as.numeric(object.size(xx)) / as.numeric(object.size(x)),
+               tolerance = 10e-2)
+})

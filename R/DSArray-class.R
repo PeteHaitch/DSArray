@@ -753,9 +753,8 @@ setAs("DSArray", "array",
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
 #' @export
-setMethod("show", "DSArray",
+setMethod("show", "DSArray", # nocov start
           function(object) {
             cat("class:", class(object), "\n")
             cat("dim:", dim(object), "\n")
           }
-)

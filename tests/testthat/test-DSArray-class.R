@@ -64,10 +64,9 @@ test_that("DSArray,matrix-method works", {
   expect_error(DSArray(m, dimnames = dn))
 })
 
-# NOTE: DSArray,missing-method not currently implemented
-# test_that("DSArray,missing-method works", {
-#   expect_true(dsa_identical_to_array(DSArray(), array(dim = c(1, 1, 1))))
-# })
+test_that("DSArray,missing-method works", {
+  expect_true(dsa_identical_to_array(DSArray(), array(dim = c(1, 1, 1))))
+})
 
 test_that("DSArray,list-method works", {
   l <- lapply(seq_len(dim(x)[3]), function(k) x[, , k, drop = TRUE])
@@ -782,6 +781,11 @@ test_that("Errors if no subcript supplied", {
   msg <- "Please provide at least one 'i', 'j', or 'k'"
   yy <- xx
   expect_error(yy[] <- xx, msg)
+})
+
+test_that("Errors if value has incorrect dimensions", {
+  msg <- "number of items to replace is not a multiple of replacement length"
+  expect_error(xx[1, ] <- xx, msg)
 })
 
 context("arbind,DSArray-method and acbind,DSArray-method")
