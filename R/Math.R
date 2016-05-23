@@ -7,6 +7,7 @@
 ###     `lgamma`, `digamma`, `trigamma`
 ### -------------------------------------------------------------------------
 
+#' @param x,e1,e2 DSArray objects.
 #' @importFrom methods callGeneric setMethod
 #' @importMethodsFrom methods Math
 #'

@@ -13,7 +13,8 @@ setMethod("Ops", c("DSArray", "vector"),
             n1 <- length(e1)
             n2 <- length(e2)
             if (n2 != 1L) {
-              # TODO: Is it possible to avoid explicitly densifying e1?
+              # TODO (longterm): Is it possible to avoid explicitly densifying
+              #                  e1?
               return(DSArray(callGeneric(.densify(e1, warn = TRUE), e2)))
             } else {
               slot(e1, "val", check = FALSE) <- callGeneric(slot(e1, "val"), e2)
@@ -30,7 +31,8 @@ setMethod("Ops", c("vector", "DSArray"),
             n1 <- length(e1)
             n2 <- length(e2)
             if (n1 != 1L) {
-              # TODO: Is it possible to avoid explicitly densifying e1?
+              # TODO (longterm): Is it possible to avoid explicitly densifying
+              #                  e1?
               return(DSArray(callGeneric(e1, .densify(e2, warn = TRUE))))
             } else {
               slot(e2, "val", check = FALSE) <- callGeneric(e1, slot(e2, "val"))

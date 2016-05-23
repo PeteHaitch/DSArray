@@ -33,6 +33,9 @@
 
 \S4method{Ops}{DSArray,DSArray}(e1, e2)
 }
+\arguments{
+\item{x, e1, e2}{DSArray objects.}
+}
 \description{
 Common operations on DSArray objects
 }

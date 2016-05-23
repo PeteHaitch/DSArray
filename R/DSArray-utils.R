@@ -62,3 +62,37 @@
 #' @name DSArray-utils
 #' @aliases Complex,DSArray-method
 NULL
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Group generic methods
+###
+
+# See R/Complex.R, R/Math.R, R/Math2.R, R/Ops.R, and R/Summary.R
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Other logical data methods
+###
+
+# TODO: Based on S4Vectors/R/Rle-utils.R, consider adding:
+#       !, which(), which.max(),
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Other numerical data methods
+###
+
+# TODO: None as of yet, but consider e.g., those methods implemented in the
+#       S4Vectors package especially in the R/Rle-utils.R file.
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Other character data methods
+###
+
+# TODO: None as of yet, but consider e.g., those methods implemented in the
+#       S4Vectors package especially in the R/Rle-utils.R file.
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Other factor data methods
+###
+
+# TODO: None as of yet, but consider e.g., those methods implemented in the
+#       S4Vectors package especially in the R/Rle-utils.R file.

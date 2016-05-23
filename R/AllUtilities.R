@@ -151,8 +151,6 @@ setMethod(".sparsify", "data.frame",
   if (missing(i) && missing(j)) {
     if (!missing(k)) {
       x_dim <- c(nrow(x), ncol(x), length(k))
-    } else {
-      x_dim <- dim(x)
     }
   } else if (missing(i) && !missing(j)) {
     if (!missing(k)) {
@@ -182,6 +180,13 @@ setMethod(".sparsify", "data.frame",
 # NOTE: Assume each element of the list is one sample's data, i.e., a
 #       column-slice of the resulting 3-dimensional array. This is different to
 #       what base::simplify2array() returns.
+#' Combine list of arrays into a single array
+#'
+#' Assumes each element of the list is one sample's data, i.e., a column-slice
+#' of the resulting 3-dimensional array. This is different to what
+#' \code{\link{[base]simplify2array()}} returns.
+#' @param l A list of 3-dimensional arrays where each
+#'
 #' @author Peter Hickey
 #' @keywords internal
 .list_to_array <- function(l, dim = NULL, dimnames = NULL) {

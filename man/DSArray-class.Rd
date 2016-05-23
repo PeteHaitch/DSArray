@@ -143,6 +143,21 @@ R supports \code{\link[base]{logical}}, \code{\link[base]{integer}},
 \code{\link[base]{raw}} arrays. The DSArray class currently supports all
 these types except \code{\link[base]{complex}} and \code{\link[base]{raw}}.
 }
+
+\section{API and Supported Methods}{
+
+It is intended that a DSArray object behaves much as if it were a
+\link[base]{array} object. Common operations such arithmetic (e.g.,
+\code{`+`}, \code{`*`}), comparison (e.g., \code{==}, \code{<}), and
+mathematical transformations (e.g., \code{log()}, \code{sin()}) are all
+supported; see \link{DSArray-utils} for a full list and details.
+
+However, not all operations that are well-defined for \link[base]{array}
+objects are currently implemented for DSArray objects (e.g., \code{mean()}).
+I plan to implement these as needed, so if you come across one that you
+would like to have, then please file a feature request at
+\url{https://github.com/PeteHaitch/DSArray/issues}.
+}
 \author{
 Peter Hickey
 }
