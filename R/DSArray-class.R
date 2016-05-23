@@ -758,3 +758,4 @@ setMethod("show", "DSArray", # nocov start
             cat("class:", class(object), "\n")
             cat("dim:", dim(object), "\n")
           }
+) # nocov end
