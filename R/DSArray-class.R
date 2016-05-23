@@ -696,7 +696,7 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
 #'
 #' @rdname DSArray
 #' @importFrom methods setMethod
-#' @importFrom SummarizedExperiment arbind
+#' @importMethodsFrom SummarizedExperiment arbind
 #'
 #' @export
 setMethod("arbind", "DSArray",
@@ -711,7 +711,7 @@ setMethod("arbind", "DSArray",
 #'
 #' @rdname DSArray
 #' @importFrom methods setMethod
-#' @importFrom SummarizedExperiment acbind
+#' @importMethodsFrom SummarizedExperiment acbind
 #'
 #' @export
 setMethod("acbind", "DSArray",
