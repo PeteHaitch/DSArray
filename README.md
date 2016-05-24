@@ -1,10 +1,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Project Status: Wip - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/0.1.0/wip.svg)](http://www.repostatus.org/#wip) <!-- TODO: Uncomment once in Bioc
-[![Bioconductor devel build status](http://bioconductor.org/shields/build/devel/bioc/DSArray.svg)](http://bioconductor.org/checkResults/devel/bioc-LATEST/DSArray/) --> [![Linux Build Status](https://travis-ci.org/PeteHaitch/DSArray.svg?branch=master)](https://travis-ci.org/PeteHaitch/DSArray) <!-- TODO: Uncomment once in Bioc
-[![Bioconductor downloads](http://bioconductor.org/shields/downloads/DSArray.svg)](http://bioconductor.org/packages/stats/bioc/DSArray.html) --> [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/PeteHaitch/DSArray?svg=true)](https://ci.appveyor.com/project/PeteHaitch/DSArray) [![Coverage Status](https://img.shields.io/codecov/c/github/PeteHaitch/DSArray/master.svg)](https://codecov.io/github/PeteHaitch/DSArray?branch=master) <!-- TODO: Uncomment once obtained DOI
-[![DOI](https://zenodo.org/badge/22085/PeteHaitch/DSArray.svg)](https://zenodo.org/badge/latestdoi/22085/PeteHaitch/DSArray) -->
+[![Project Status: Wip - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/0.1.0/wip.svg)](http://www.repostatus.org/#wip) [![Linux Build Status](https://travis-ci.org/PeteHaitch/DSArray.svg?branch=master)](https://travis-ci.org/PeteHaitch/DSArray) [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/PeteHaitch/DSArray?svg=true)](https://ci.appveyor.com/project/PeteHaitch/DSArray) [![Coverage Status](https://img.shields.io/codecov/c/github/PeteHaitch/DSArray/master.svg)](https://codecov.io/github/PeteHaitch/DSArray?branch=master)
 
+<!-- TODO: Uncomment once in Bioc
+[![Bioconductor downloads](http://bioconductor.org/shields/downloads/DSArray.svg)](http://bioconductor.org/packages/stats/bioc/DSArray.html) -->
+<!-- TODO: Uncomment once obtained DOI
+[![DOI](https://zenodo.org/badge/22085/PeteHaitch/DSArray.svg)](https://zenodo.org/badge/latestdoi/22085/PeteHaitch/DSArray) -->
+<!-- TODO: Uncomment once in Bioc
+[![Bioconductor devel build status](http://bioconductor.org/shields/build/devel/bioc/DSArray.svg)](http://bioconductor.org/checkResults/devel/bioc-LATEST/DSArray/) -->
 R package: DSArray
 ------------------
 
