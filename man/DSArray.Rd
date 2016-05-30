@@ -70,6 +70,16 @@ as follows:
  object, respectively. The colnames of the returned object are \code{NULL}.
 }
 }
+\examples{
+# Constructing a DSArray from matrix input
+m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5], LETTERS[1:2]))
+m
+m_dsa <- DSArray(m)
+m_dsa
+# Supplying alternate dimnames
+DSArray(m, dimnames = list(rownames(m), "sample-1", colnames(m)))
+
+}
 \author{
 Peter Hickey
 }

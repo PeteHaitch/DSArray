@@ -69,7 +69,7 @@ We can reconstruct the data for a particular sample by expanding the _val_ by th
 
 ### API and overview of methods
 
-The aim is to allow a _DSArray_ object to be used as a drop-in replacement for an _array_ object from the __base__ package when the need arises. The _DSArray_ API is therefore written to mimic the _array_ API so that _DSArray_ objects behave as if they were 3-dimensional _array_ objects.
+The aim is to allow a _DSArray_ to be used as a drop-in replacement for an _array_ from the __base__ package when the need arises. The _DSArray_ API is therefore written to mimic the _array_ API so that _DSArray_ objects behave as if they were 3-dimensional _array_ objects.
   
 ## Quick demo
 
@@ -112,7 +112,6 @@ The vignette can be viewed at [http://bioconductor.org/packages/release/bioc/vig
 # TODO: Echo this chunk once the vignette is written
 vignette("DSArrayIntroduction", package = "DSArray")
 ```
-
 
 ## Have a feature request, need help or want to get involved?
 

@@ -201,6 +201,15 @@ setValidity2("DSArray", .valid.DSArray)
 #'
 #' @seealso \link{DSArray-class}
 #'
+#' @examples
+#' # Constructing a DSArray from matrix input
+#' m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5], LETTERS[1:2]))
+#' m
+#' m_dsa <- DSArray(m)
+#' m_dsa
+#' # Supplying alternate dimnames
+#' DSArray(m, dimnames = list(rownames(m), "sample-1", colnames(m)))
+#'
 #' @export
 setMethod("DSArray", "matrix",
           function(x, dimnames = NULL) {
@@ -247,6 +256,10 @@ setMethod("DSArray", "list",
             if (!isTRUE(all(ok_dim))) {
               stop("All elements of 'x' must have same dimensions")
             }
+            # TODO: Might be better to skip the intermediate rbind-ed matrix
+            #       representation and go straight to the data.table form
+            # TODO: It might also be feasible to .sparsify each matrix and
+            #       then combine these.
             x_matrix <- do.call("rbind", x)
             sparsified <- .sparsify(x_matrix)
             dim(slot(sparsified, "key")) <- list(d[[1L]][[1L]], length(d))
@@ -288,6 +301,11 @@ setMethod("DSArray", "array",
             if ((length(MARGIN) > 1L) || (MARGIN < 1L) || (MARGIN > n)) {
               stop("incorrect value for 'MARGIN'")
             }
+            # TODO: Might be better to skip the intermediate list of matrix
+            #       objects and go straight to a data.table
+            # TODO: It might also be feasible to .sparsify each matrix slice
+            #       and then combine these.
+            # TODO: At the very least, mclapply() if possible
             if (MARGIN == 1L) {
               x_list <- lapply(seq_len(d[MARGIN]), function(idx, x) {
                 tmp <- x[idx, , , drop = FALSE]
@@ -330,6 +348,10 @@ setMethod("DSArray", "missing",
             DSArray(matrix(), ...)
           }
 )
+
+# TODO: DSArray,data.frame-method. Will avoid having to go
+#       data.frame -> matrix -> DSArray and the associated copies this incurs.
+#       Should check that all columns are atomic.
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Getters and setters
@@ -486,6 +508,10 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
   x <- .validate_DSArray_subscript(x, i, j, k)
   new_key_dimnames <- dimnames(slot(x, "key"))
   if (missing(i) && missing(j)) {
+    # TODO: This doesn't drop rows of `val` that were unique to not-k; i.e. the
+    #       returned object is larger than it needs to be. However, by not
+    #       dropping these rows we save some computational time, so it might be
+    #       a tradeoff.
     if (!missing(k)) {
       slot(x, "val") <- slot(x, "val")[, k, drop = FALSE]
     }
@@ -756,12 +782,14 @@ setAs("DSArray", "array",
       }
 )
 
+# TODO: as.array S3/S4 combo for DSArray objects
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### show
 ###
 
-# TODO (longterm): See show,HDF5Array-method, which gives useful information
-#                  and shows a head/tail of the data
+# TODO: See show,HDF5Array-method, which gives useful information and shows a
+#       head/tail of the data
 
 #' @rdname DSArray-class
 #' @importFrom methods setMethod

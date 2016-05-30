@@ -45,7 +45,7 @@ We can reconstruct the data for a particular sample by expanding the *val* by th
 -->
 ### API and overview of methods
 
-The aim is to allow a *DSArray* object to be used as a drop-in replacement for an *array* object from the **base** package when the need arises. The *DSArray* API is therefore written to mimic the *array* API so that *DSArray* objects behave as if they were 3-dimensional *array* objects.
+The aim is to allow a *DSArray* to be used as a drop-in replacement for an *array* from the **base** package when the need arises. The *DSArray* API is therefore written to mimic the *array* API so that *DSArray* objects behave as if they were 3-dimensional *array* objects.
 
 Quick demo
 ----------
