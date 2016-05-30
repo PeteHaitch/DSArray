@@ -534,7 +534,9 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
         new_key_dimnames[[1L]] <-
           new_key_dimnames[[1L]][match(i, new_key_dimnames[[1L]])]
       } else {
-        new_key_dimnames[[1L]] <- new_key_dimnames[[1L]][i]
+        if (!is.null(new_key_dimnames[[1L]])) {
+          new_key_dimnames[[1L]] <- new_key_dimnames[[1L]][i]
+        }
       }
     } else if (!missing(i) && !missing(j)) {
       jj <- unique(j)
@@ -640,7 +642,8 @@ setMethod("[", "DSArray",
     densified_x[, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
   } else if (!missing(i) & !missing(j) & !missing(k)) {
-    value <- .validate_DSArray_value_dim(value = value, i = i, j = j, k = k, x = x)
+    value <- .validate_DSArray_value_dim(value = value, i = i, j = j, k = k,
+                                         x = x)
     densified_x <- .densify(x, simplify = TRUE, warn = TRUE)
     densified_x[i, j, k] <- .densify(value, simplify = TRUE, warn = FALSE)
     return(DSArray(densified_x))
@@ -649,6 +652,9 @@ setMethod("[", "DSArray",
   }
 }
 
+# TODO: Note that `[<-,DSArray-method` is very slow because it requires
+#       densifying the data and then re-sparsifying; recommend that users avoid
+#       using this operation as much as possible.
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
 #'

@@ -312,7 +312,7 @@ setMethod(".sparsify", "data.frame",
 .sizeDSArray <- function(nr, nc, sl, pus, so) {
   stopifnot(pus <= 1 & pus >= 0)
   nr * nc * 1 * 4 +
-    (1 - pus) * nr * nc * sl * so
+    pus * nr * nc * sl * so
 }
 
 #' Compute (theoretical) size of base::array object
@@ -336,7 +336,7 @@ setMethod(".sparsify", "data.frame",
 #' of base::array object.
 #' @keywords internal
 .sizeRatio <- function(sl, pus, so) {
-  4 / (sl * so) + (1 - pus)
+  4 / (sl * so) + pus
 }
 
 #' Check whether DSArray representation is identical to array representation

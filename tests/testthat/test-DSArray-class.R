@@ -73,11 +73,15 @@ test_that("DSArray,list-method works", {
   expect_is(DSArray(l), "DSArray")
   expect_identical(dimnames(DSArray(l)), list(rownames(x), NULL, colnames(x)))
   expect_null(dimnames(unname(DSArray(l))))
-  dn <- list(as.character(100:1), LETTERS[1:8], LETTERS[7:10])
+  dn <- list(as.character(seq_len(nrow(l[[1]]))),
+             as.character(rev(seq_len(length(l)))),
+             as.character(-seq_len(ncol(l[[1]]))))
   expect_error(DSArray(l, dimnames = dn[1:2]),
                "supplied 'dimnames' must have length 3")
   expect_identical(dimnames(DSArray(l, dimnames = dn)), dn)
-  dn <- list(as.character(100:1), LETTERS[1:8], LETTERS[7:11])
+  dn <- list(as.character(seq_len(nrow(l[[1]]))),
+             as.character(rev(seq_len(length(l)))),
+             as.character(-seq_len(ncol(l[[1]]) + 1)))
   expect_error(DSArray(m, dimnames = dn))
   l2 <- lapply(seq_len(dim(x)[3]), function(k) x[, , k, drop = FALSE])
   expect_error(DSArray(l2), "All elements of 'x' must be matrix objects")
@@ -142,7 +146,8 @@ test_that("slicenames works", {
 })
 
 test_that("dimnames<- works", {
-  dn <- lapply(list(100:1, 4:1, 8:1), as.character)
+  dn <- lapply(list(seq(nrow(xx), 1), seq(ncol(xx), 1), seq(nslice(xx), 1)),
+               as.character)
   dimnames(xx) <- dn
   expect_identical(dimnames(xx), dn)
   dimnames(xx) <- NULL
@@ -150,7 +155,7 @@ test_that("dimnames<- works", {
 })
 
 test_that("slicenames<- works", {
-  sn <- as.character(8:1)
+  sn <- as.character(seq(nslice(xx), 1))
   slicenames(xx) <- sn
   expect_identical(slicenames(xx), sn)
   slicenames(xx) <- NULL
@@ -492,7 +497,7 @@ test_that("replacing a DSArray by j works or errors on bad input", {
 })
 
 test_that("replacing a DSArray by k works or errors on bad input", {
-  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:2, 2))
   y <- x
   yy <- xx
   lapply(k, function(kk) {
@@ -591,7 +596,7 @@ test_that("replacing a DSArray by (i, j) works or errors on bad input", {
 
 test_that("replacing a DSArray by (i, k) works or errors on bad input", {
   i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
-  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:2, 2))
   y <- x
   yy <- xx
   Map(function(ii, kk) {
@@ -648,7 +653,7 @@ test_that("replacing a DSArray by (i, k) works or errors on bad input", {
 
 test_that("replacing a DSArray by (j, k) works or errors on bad input", {
   j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
-  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:2, 2))
   y <- x
   yy <- xx
   Map(function(jj, kk) {
@@ -703,10 +708,11 @@ test_that("replacing a DSArray by (j, k) works or errors on bad input", {
   }, jj = j, kk = k_bad)
 })
 
+# UP TO HERE: Testing
 test_that("replacing a DSArray by (i, j, k) works or errors on bad input", {
   i <- list(1, 1:10, sample(nrow(xx)), rep(1:10, 10))
   j <- list(1, 1:2, sample(ncol(xx)), rep(1:3, 10))
-  k <- list(1, 1:6, sample(nslice(xx)), rep(1:6, 10))
+  k <- list(1, 1:6, sample(nslice(xx)), rep(1:2, 2))
   y <- x
   yy <- xx
   Map(function(ii, jj, kk) {

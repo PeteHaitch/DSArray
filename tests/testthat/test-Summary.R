@@ -4,9 +4,9 @@
 
 context("Summary group generic")
 
-# TODO: Ask Jim Hester why these tests aren't reported in the
-#       shine(package_coverage()) output.
-
+# TODO: Have asked Jim Hester why these tests aren't reported in the
+#       shine(package_coverage()) output;
+#       https://github.com/jimhester/covr/issues/182
 test_that("DSArray,Summary-method returns identical result to array-based equivalent", {
   ops <- c(`max`, `min`, `range`, `prod`, `any`, `all`)
   a <- sample(1:1000000, 1000000, replace = TRUE)
