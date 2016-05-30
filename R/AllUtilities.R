@@ -338,3 +338,13 @@ setMethod(".sparsify", "data.frame",
 .sizeRatio <- function(sl, pus, so) {
   4 / (sl * so) + (1 - pus)
 }
+
+#' Check whether DSArray representation is identical to array representation
+#'
+#' @param dsarray A DSArray
+#' @param array A base::array
+#' @return \code{TRUE} if identical, \code{FALSE} otherwise
+#' @keywords internal
+dsa_identical_to_array <- function(dsarray, array) {
+  identical(.densify(dsarray, simplify = TRUE, warn = FALSE), array)
+}

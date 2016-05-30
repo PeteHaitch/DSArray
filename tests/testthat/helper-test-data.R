@@ -6,7 +6,6 @@
 ### Data used in tests
 ###
 
-# TODO: A more comprehensive/realistic DSArray with duplicate (i, j)-slices
 # TODO: Non-numeric test data, specifically logical, character, and perhaps
 #       complex and raw
 
@@ -26,9 +25,6 @@ z <- array(as.integer(c(1, 3, 5, 4, 6, 1, 2, 9, 11, 4, 6, 2)),
            dimnames = list(c("a", "b", "c"), c("y", "z"), c("A", "B")))
 zz <- DSArray(z, 2)
 
-se <- SummarizedExperiment::SummarizedExperiment(z)
-se2 <- SummarizedExperiment::SummarizedExperiment(zz)
-
 f <- function(nr = 100, nc = 4, ns = 8, p = 0.6) {
   n <- nr * nc * ns
   a <- array(NA_integer_,
@@ -47,10 +43,15 @@ f <- function(nr = 100, nc = 4, ns = 8, p = 0.6) {
 x <- f()
 xx <- DSArray(x)
 
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Helper functions
-###
-
-dsa_identical_to_array <- function(dsa, a) {
-  identical(.densify(dsa, simplify = TRUE, warn = FALSE), a)
+# Run tests on example dataset (**slow**)
+if (identical(Sys.getenv("TEST_WITH_EXAMPLE_DATA"), "true")) {
+  warning("Using example dataset for tests - this is **slow**", call. = FALSE)
+  load(system.file("data", "Lister-DSArray.RData", package = "DSArray"))
+  xx <- zz <- dsa
+  x <- z <- as(xx, "array")
+  dn <- list(100 + seq_len(nrow(xx)),
+             letters[seq_len(ncol(xx))],
+             LETTERS[seq_len(nslice(xx))])
+  dimnames(xx) <- dn
+  dimnames(x) <- dn
 }

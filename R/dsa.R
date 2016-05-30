@@ -1,0 +1,33 @@
+#' A \linkS4class{DSArray} object storing the counts of methylation patterns at
+#' 4-tuples.
+#'
+#' A dataset containing counts of methylation patterns at 1,000,000 randomly
+#' sampled CpG 4-tuples from 17 samples. Whilst these data are extracted from
+#' real biological experiments, they are for illustrative purposes only and are
+#' fairly useless without the associated genomic co-ordinates and other
+#' metadata.
+#'
+#' The \linkS4class{DSArray} representation of the data use 70 Mb of memory
+#' compared to 1 Gb for the \link[base]{array} representation.
+#'
+#' @format A \linkS4class{DSArray} object with 1,000,000 rows (tuples),
+#' 17 columns (samples), and 16 slices (possible methylation patterns):
+#' \describe{
+#'  \item{Rows}{rows have been deidentified by removing the genomic
+#'    co-ordinates}
+#'  \item{Columns}{sample names. Please consult the original publications for
+#'    sample descriptions}
+#'  \item{Slices}{The type of methylation pattern, e.g., \code{MMMM} means
+#'    methylated at all 4 CpGs in the 4-tuple}
+#' }
+#' @source Data originally published in:
+#' \itemize{
+#'  \item Lister, R. et al. Human DNA methylomes at base resolution show
+#'    widespread epigenomic differences. Nature 462,315-322 (2009)
+#'  \item Lister, R. et al. Hotspots of aberrant epigenomic reprogramming in
+#'    human induced pluripotent stem cells. Nature 471, 68-73 (2011)
+#' }
+#' Data re-analysed by Peter Hickey using \code{methtuple}
+#' (\url{https://github.com/PeteHaitch/methtuple}) to extract the methylation
+#' patterns at 4-tuples.
+"dsa"

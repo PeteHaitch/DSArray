@@ -1,5 +1,8 @@
 # Miscellaneous TODOs
 
+- Use example data to profile functionality (with __profvis__)
+- Write a `summary,DSArray-method`
+
 ## Things that work for arrays but don't yet for DSArrays
 
 This is a non-exhaustive list, see 'API and Supported Methods' section of `?DSArray` for some discussion of this topic.
@@ -16,7 +19,7 @@ This is a non-exhaustive list, see 'API and Supported Methods' section of `?DSAr
 
 There are probably many more; how to find list of these (`showMethods(classes = "array")` is too broad of a search)?
 
-## Current implementaiton vs. hash map
+## Current implementation vs. hash map
 
 Pros of current implementation
 
