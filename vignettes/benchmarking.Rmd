@@ -1,0 +1,66 @@
+---
+title: "Performance and benchmarking of __DSArray__"
+author: "Peter Hickey"
+date: "`r doc_date()`"
+package: "`r pkg_ver('BiocStyle')`"
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(DSArray)
+```
+
+__TODO:__ Consider rendering this separately from the R CMD build to save time.
+
+# Overview
+
+This vignette discusses the performance of the _DSArray_ class and methods by comparing these to alternative representations of the data. For a basic introduction to the __DSArray__ package, please see the introduction (__TODO:__ link) vignette.
+
+Remember,
+
+> Using a _DSArray_ object is only desirable if your data can be represented as a 3-dimensional array - features as rows, samples as columns, and measurements as slices - where many of the slices are duplicated within and between samples and these slices have length > 1. _DSArray_ objects are then an efficient, in-memory representationsof the data.
+
+To emphasise, the __DSArray__ package serves a niche purpose. This vignette only analyses the performance of __DSArray__ when being used for this purpose.
+
+We compare the _DSArray_ class and methods to the following in-memory representations:
+
+- _array_: the _array_ class and methods from the __base__ package
+- _sparse matrix_: The sparse matrix classes and methods from the `r CRANpkg("Matrix")` package
+
+When the above conditions are met and the data are large, we show that the _DSArray_ representation is much more memory efficient than using an _array_ from the __base__ package. When many of the slices are non-zero, we show that the _DSArray_ representation is much more memory efficient than us a _sparse matrix_ representation.
+
+An alternative strategy for reducing memory usage is to use an on-disk storage of the data. We therefore also compare against the following on-disk representation:
+
+- _HDF5Array_: the _HDF5Array_ class and methods from the `r Biocpkg("HDF5Array")` package
+
+## Example data
+
+We will use the included `dsa` _DSArray_ object:
+
+```{r, load-data}
+dsa
+```
+
+# Memory
+
+<!-- TODO: Uncomment once implemented
+### Memory usage
+
+```{r, memory-usage}
+# TODO: Plot of memory savings for different nr, nc, sl, pus, and so
+``` 
+-->
+
+# Speed
+
+# Profvis
+
+# Misc. TODOs
+
+

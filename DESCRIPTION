@@ -2,7 +2,7 @@ Package: DSArray
 Type: Package
 Title: Compressed In-Memory Representation of 3-Dimensional Arrays That Contain
        Many Duplicate Slices
-Version: 0.0.9002
+Version: 0.0.9003
 Authors@R: c(person("Peter", "Hickey", role = c("aut", "cre"),
     email = "peter.hickey@gmail.com"))
 Description: Compressed in-memory representation of 3-dimensional arrays that
@@ -21,8 +21,10 @@ Imports:
     RColorBrewer
 Suggests:
     abind,
+    BiocStyle,
     knitr,
+    pryr,
     rmarkdown,
-    testthat
+    testthat,
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
