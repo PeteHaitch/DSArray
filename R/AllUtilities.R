@@ -301,18 +301,18 @@ setMethod(".sparsify", "data.frame",
 #'
 #' Note, actual size may differ slightly due to how R allocates memory; see
 #' http://adv-r.had.co.nz/memory.html for details.
-#' @param nr Number of rows
-#' @param nc Number of columns
-#' @param sl Slice length
-#' @param nus Proportion of unique slices
+#' @param nrow Number of rows
+#' @param ncol Number of columns
+#' @param nslice Number of slices
+#' @param pus Proportion of unique slices
 #' @param so Size of individual element (integer, numeric, character, etc. )
 #' in bytes (B)
 #' @return Total (approximate) size in bytes (B)
 #' @keywords internal
-.sizeDSArray <- function(nr, nc, sl, pus, so) {
+.sizeDSArray <- function(nrow, ncol, nslice, pus, so) {
   stopifnot(pus <= 1 & pus >= 0)
-  nr * nc * 1 * 4 +
-    pus * nr * nc * sl * so
+  nrow * ncol * 1 * 4 +
+    pus * nrow * ncol * nslice * so
 }
 
 #' Compute (theoretical) size of base::array object
@@ -322,21 +322,21 @@ setMethod(".sparsify", "data.frame",
 #' @inheritParams .sizeDSArray
 #' @return Total (approximate) size in bytes (B)
 #' @keywords internal
-.sizeBaseArray <- function(nr, nc, sl, pus, so) {
-  nr * nc * sl * so
+.sizeBaseArray <- function(nrow, ncol, nslice, pus, so) {
+  nrow * ncol * nslice * so
 }
 
 #' Size ratio of DSArray to base::array
 #'
-#' @param sl Slice length
-#' @param nus Proportion of unique slices
+#' @param nslice Number of slices
+#' @param pus Proportion of unique slices
 #' @param so Size of individual element (integer, numeric, character, etc. )
 #' in bytes (B)
 #' @return Ratio of (approximate) size of DSArray object to (approximate) size
 #' of base::array object.
 #' @keywords internal
-.sizeRatio <- function(sl, pus, so) {
-  4 / (sl * so) + pus
+.sizeRatio <- function(nslice, pus, so) {
+  4 / (nslice * so) + pus
 }
 
 #' Check whether DSArray representation is identical to array representation
