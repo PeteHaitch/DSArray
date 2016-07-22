@@ -13,9 +13,6 @@ output:
   BiocStyle::html_document
 ---
 
-__TODO:__ Use simpler, small data to demonstrate functions because these allow you to actually see results of the operations. Save example data for performance 
-vignette. 
-
 ```{r, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(DSArray)
@@ -46,7 +43,7 @@ We can reconstruct the data for a particular sample by expanding the _val_ by th
 
 ## Constructing a _DSArray_
 
-The `DSArray()` function provides several different ways to construct a _DSArray_ object. We demonstrate it's use when working with a single sample or multiple samples. 
+The `DSArray()` function provides several different ways to construct a _DSArray_ object. We demonstrate its use when working with both a single sample and multiple samples. 
 
 ### Single sample
 
@@ -123,45 +120,13 @@ l_dsa <- DSArray(l)
 l_dsa
 ```
 
-### Example data
-
-The above toy examples demonstrate how to construct a _DSArray_, but these data are too simple to benefit from a _DSArray_ representation. For the remainder of this vignette we will use the `dsa` example dataset included with __DSArray__:
-
-```{r, load-data}
-dsa
-```
-
-While these data are extracted from real biological experiments, it is not necessary to understand the details to follow the vignette. Briefly, `dsa` contains counts of patterns of DNA methylation at 1,000,000 randomly sampled features (rows) from 17 samples (columns). For each feature and sample, the number of occurences of each of the $2^4 = 16$ observable patterns of DNA methylation is recorded (slices).
-
-Importantly, these data are very sparse. Although at least one sample has at least one observation for every feature, the majority of samples have no observations for the majority of features (these are recorded as `NA`). Furthermore, there are many features and samples with identical ("duplicated") counts, hence these data are perfectly suited to storing as a _DSArray_:
-
-```{r, dsa-summary}
-# TODO: Write a summary,DSArray-method; might be interesting to know percentage 
-#       NA for each sample and summary() of non-NA values per sample/slice
-```
-
-We can compute the memory saving of using a _DSArray_ representation rather than an _array_[^pryr]. We find that the _DSArray_ representation is `r as.numeric(round(100 * pryr::object_size(dsa) / pryr::object_size(as(dsa, "array"))), 0)`% the size of the equivalent _array_ representation:
-
-[^pryr]: This uses the `object_size()` function from the `r CRANpkg("pryr")` package.
-
-```{r, memory-saving}
-pryr::object_size(dsa)
-# Create the array representation
-a <- as(dsa, "array")
-pryr::object_size(a)
-```
-
-In what follows, we will demonstrate that working with the _DSArray_ respresenatation, `dsa`, gives equivalent results to using the _array_ representation, `a`, with the benefit of much reduced memory usage.
-
 ## API and overview of methods
 
 The aim is to allow a _DSArray_ to be used as a drop-in replacement for an _array_ when the need arises. The _DSArray_ API is therefore written to mimic the _array_ API so that _DSArray_ objects behave as if they were 3-dimensional _array_ objects. However, the API coverage is not 100% complete. I am adding these missing methods as needed, so if something you require is missing then please get in touch by filing a feature request at [https://github.com/PeteHaitch/DSArray/issues](https://github.com/PeteHaitch/DSArray/issues). 
 
-Where possible, __DSArray__ aims to avoid "densifying" the data (i.e. converting it to an _array_ for intermediate calculations) since doing so obviously negates the memory efficiency of using a _DSArray_. However, not all operations are optimally implemented, some because they are difficult (or perhaps impossible) and others because I haven't yet taken the time to optimise them. 
+Where possible, __DSArray__ aims to avoid "densifying" the data (i.e. converting it to an _array_ for intermediate calculations) since doing so obviously negates the memory efficiency of using a _DSArray_. In the __DSArray__ documentation, we refer to methods that avoid densifying the data as being optimally implemented and methods that densify the data as being sub-optimally implemented. Not all operations are optimally implemented, some because they are difficult (or perhaps impossible) and others because I haven't yet taken the time to optimise them. 
 
 As an example, one operation to avoid if at all possible is subset replacement with the `[<-` operator; this is a very expensive operation since it first densifies the data and then re-sparsifies. 
-
-Thus a _DSArray_ may best be thought of as a read-only data structure, at least in its current form.
 
 ### Subsetting 
 
@@ -171,76 +136,170 @@ We can subset a _DSArray_ just as we would an _array_ by using the `[` operator[
 
 ```{r, [}
 # Extract the first feature
-dsa[1, , ]
+a_dsa[1, , ]
 # Extract the first sample
-dsa[, 1, ]
+a_dsa[, 1, ]
 # Extract the first slice
-dsa[, , 1]
-# Extract the first 10 features for the first 3 samples
-# TODO: This is broken
-# dsa[1:10, 1:3, ]
+a_dsa[, , 1]
+# Extract the first 2 features for the first 3 samples
+a_dsa[1:2, 1:3, ]
 ```
 
 <!--TODO: Comment on the speed of subsetting by different combinations of i, j, and k; link to benchmarking vignette -->
 
 ### Combining
 
-__TODO__
+Rather than provide `cbind()` and `rbind()` methods, __DSArray__ provides methods for the `acbind()` and `arbind()` generics defined in `r Biocpkg("IRAnges")`. `acbind()` and `arbind()` generalise `cbind()` and `rbind()` to array-like objects. These generics bind array-like objects with an arbitrary number of dimensions along their rows (`arbind`) or columns (`acbind`). All _DSArray_ objects must have the same number of rows (resp. columns) when `acbind()`-ing (resp. `arbind()`-ing).
 
-- `acbind()`
-- `arbind()`
+```{r, acbind-arbind}
+acbind(a_dsa, a_dsa[, 1, ])
+acbind(a, a[ , 1, , drop = FALSE])
+arbind(a_dsa, a_dsa[1, , ])
+arbind(a, a[1, , , drop = FALSE])
+```
 
-### Arithmetic, Comparison, and Logic
+### S4 Group Generic Functions
 
-__TODO:__ Perhaps use simpler, small data to demonstrate functions because these allow you to actually see results of the operations. Also, implement a show method that includes head/tail of data ala HDF5Array, which will help in this regard.
+`Arith`, `Compare`, `Ops`, `Logic`, `Math`, `Math2`, `Summary`, and `Complex` are _group generic functions_. Each group generic function has a number of member generic functions associated with it. __DSArray__ provides methods for each of these generics for the _DSArray_ class.
+
+#### `Arith`, `Compare`, and `Logic`
 
 It is trivial to implement high-performance scalar-_DSArray_ arithmetic, comparison, and logic methods:
 
 ```{r, scalar-ops}
 # Arithmetic
-dsa + 3
-dsa - 3
-dsa * 3
-dsa ^ 3
-dsa %% 3
-dsa %/% 3
-dsa / 3
+a_dsa + 3
+a_dsa - 3
+a_dsa * 3
+a_dsa ^ 3
+a_dsa %% 3
+a_dsa %/% 3
+a_dsa / 3
 
 # Comparison
-dsa == 3
-dsa > 3
-dsa < 3
-dsa != 3
-dsa <= 3
-dsa >= 3
+a_dsa == 3
+a_dsa > 3
+a_dsa < 3
+a_dsa != 3
+a_dsa <= 3
+a_dsa >= 3
 
 # Logic
-dsa & TRUE
-dsa | TRUE
+a_dsa & TRUE
+a_dsa | TRUE
 ```
 
-The same is not true of vector-_DSArray_, array-_DSArray_, or _DSArray_-_DSArray_ operations, which all currently require the densification of the _DSArray_ argument(s):
+Unfortunately, the same is not true of vector-_DSArray_, array-_DSArray_, or _DSArray_-_DSArray_ operations, which all currently require the densification of the _DSArray_ argument(s):
 
 ```{r, array-ops}
-dsa + 1:2
+a_dsa + 1:2
 ```
 
 We can check that the _DSArray_ method gives an identical result to the _array_ method using the non-exported `DSArray:::dsa_identical_to_array()` function. For example:
 
 ```{r, dsa_identical_to_array}
-DSArray:::dsa_identical_to_array(dsa * 3, a * 3)
+DSArray:::dsa_identical_to_array(a_dsa * 3, a * 3)
 ```
 
-### Math and Math2
+#### `Math`
 
-__UP TO HERE__
+All `Math` member generic functions are optimally implemented except for `cummax()`, `cummin()`, `cumprod()`, and `cumsum()`.
 
-### Summary
+```{r, Math}
+# Optimally implemented
+abs(a_dsa * -1)
+sign(a_dsa)
+sqrt(a_dsa)
+ceiling(a_dsa + 0.3)
+floor(a_dsa + 0.3)
+trunc(a_dsa + 0.7)
+log(a_dsa)
+log10(a_dsa)
+log2(a_dsa)
+log1p(a_dsa)
+acos(a_dsa)
+acosh(a_dsa)
+asin(a_dsa)
+asinh(a_dsa)
+atan(a_dsa)
+atanh(a_dsa)
+exp(a_dsa)
+expm1(a_dsa)
+cos(a_dsa)
+cosh(a_dsa)
+cospi(a_dsa)
+sin(a_dsa)
+sinh(a_dsa)
+tan(a_dsa)
+tanh(a_dsa)
+tanpi(a_dsa)
+gamma(a_dsa)
+lgamma(a_dsa)
+digamma(a_dsa)
+trigamma(a_dsa)
 
-### Complex
+# Sub-optimally implemented
+cummin(a_dsa)
+cummax(a_dsa)
+cumprod(a_dsa)
+cumsum(a_dsa)
+```
+
+#### `Math2`
+
+All `Math2` member generic functions are optimally implemented.
+
+```{r, Math2}
+# Optimally implemented
+round(a_dsa + 0.37, 1)
+signif(a_dsa + 0.37, 2)
+```
+
+#### `Summary`
+
+All `Summary` member generic functions are optimally implemented.
+
+```{r, Summary}
+# Optimally implemented
+all(a_dsa)
+all(a_dsa - 1L)
+any(a_dsa)
+any(a_dsa * 0L)
+sum(a_dsa)
+prod(a_dsa)
+min(a_dsa)
+max(a_dsa)
+range(a_dsa)
+```
+
+#### `Complex`
+
+None of the `Complex` member generic functions are implemented because _DSArray_ object do not currently support complex numbers.
+
+
+```{r, error = TRUE, Complex}
+DSArray(array(1i))
+```
 
 ## Using _DSArray_ within a _SummarizedExperiment_
 
-An efficient representation of sparse 3-dimensional arrays within a _SummarizedExperiment_ was the motivation for the __DSArray__ project. The __SummarizedExperiment__ package defines an important base class in the Bioconductor project. I needed an efficient way to store DNA methylation patterns, a particular kind of genomic data, that was compatible with the __SummarizedExperiment__ package.
+An efficient representation of sparse 3-dimensional arrays within a _SummarizedExperiment_ was the motivation for the development of __DSArray__. The __SummarizedExperiment__ package defines an important base class in the Bioconductor project. I needed an efficient way to store DNA methylation patterns, a particular kind of genomic data, that was compatible with the __SummarizedExperiment__ package.
+
+Here is a simple example showing that a _DSArray_ works within a _SummarizedExperiment_.
+
+```{r, SummarizedExperiment}
+library(SummarizedExperiment)
+se <- SummarizedExperiment(list(counts = a_dsa))
+rbind(se, se)
+cbind(se, se)
+assays(se)
+assay(se)
+sum(assay(se))
+se[, 2]
+se[c(1, 3), ]
+dimnames(se)
+```
 
 ## Future work
+
+__TODO__

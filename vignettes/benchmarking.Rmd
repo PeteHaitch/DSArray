@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = TRUE)
 library(DSArray)
 ```
 
@@ -24,30 +24,159 @@ This vignette discusses the performance of the _DSArray_ class and methods by co
 
 Remember,
 
-> Using a _DSArray_ object is only desirable if your data can be represented as a 3-dimensional array - features as rows, samples as columns, and measurements as slices - where many of the slices are duplicated within and between samples and these slices have length > 1. _DSArray_ objects are then an efficient, in-memory representationsof the data.
+> Using a _DSArray_ object is only desirable if your data can be represented as a 3-dimensional array - features as rows, samples as columns, and measurements as slices - where many of the slices are duplicated within and between samples and these slices have length > 1. _DSArray_ objects are then an efficient, in-memory representation of the data.
 
-To emphasise, the __DSArray__ package serves a niche purpose. This vignette only analyses the performance of __DSArray__ when being used for this purpose.
+To emphasise, the __DSArray__ package serves a niche purpose, and this vignette only analyses the performance of the _DSArray_ class when being used for this specific purpose. 
 
-We compare the _DSArray_ class and methods to the following in-memory representations:
+# Some alternative data structures
 
-- _array_: the _array_ class and methods from the __base__ package
-- _sparse matrix_: The sparse matrix classes and methods from the `r CRANpkg("Matrix")` package
+Prior to (and while) developing the __DSArray__ package, I investigated alternative representations of these type of data. The below table describes 3 alternative data structures, which I compare _DSArray_ against in this vignette.
 
-When the above conditions are met and the data are large, we show that the _DSArray_ representation is much more memory efficient than using an _array_ from the __base__ package. When many of the slices are non-zero, we show that the _DSArray_ representation is much more memory efficient than us a _sparse matrix_ representation.
+| Class                   | Package                  | Sparse representation | Storage mode |
+|-------------------------|--------------------------|-----------------------|--------------|
+| _array_                 | base (TODO: link)        | No                    | In memory    |
+| _simple\_sparse\_array_ | `r CRANpkg("slam")`      | Yes                   | In memory    |
+| _HDF5Array_             | `r Biocpkg("HDF5Array")` | No                    | On disk      |
 
-An alternative strategy for reducing memory usage is to use an on-disk storage of the data. We therefore also compare against the following on-disk representation:
+The _array_ class is the simplest representation, but is obviously going to be large in memory since it stores the array in dense form. It does, however, come with the benefit that it is familiar and simple for most R users to manipulate.
 
-- _HDF5Array_: the _HDF5Array_ class and methods from the `r Biocpkg("HDF5Array")` package
+To try to reduce the size of the data in memory, I investigated using a sparse array representation for the type data. The `r CRANpkg("slam")` package provides data structures and (a limited number of) algorithms and methods for sparse arrays[^Matrix]. Unfortunately, the type of data I needed to work with are not well suited a classical sparse representation because these data contain both missing data (encoded as `NA`) and data that are truly zero (encoded as `0`). This does not lend itself well to most sparse array representation, which categories each data point to be zero or non-zero; `NA` values are non-zero and therefore contribute to making the data less sparse[^NA_to_zero].
 
-## Example data
+[^Matrix]: The `r CRANpkg("Matrix")` package is a popular choice for storing sparse matrices. However, it does not support multidimensional arrays, which means it is not immediately suitable for storing the type of data I have.
 
-We will use the included `dsa` _DSArray_ object:
+[^NA_to_zero]: Of course, `NA` could be encoded as `0`, but this incurs a loss of information.
+
+Finally, an obvious way to reduce memory usage is to store the data on disk rather than in memory. The `r Biocpkg("HDF5Array")` package is one such R package for storing arrays on disk, using the [**H**ierarchical **D**ata **F**ormat (HDF)](https://en.wikipedia.org/wiki/Hierarchical_Data_Format).
+
+# Example data
+
+The toy examples in the [introduction ](introduction) vignette demonstrate how to construct a _DSArray_, but these data are too small and simple to benefit from a _DSArray_ representation. For the remainder of this vignette we will use the `dsa` example dataset that is included with __DSArray__. We also construct an _array_ (`a`), _simple\_sparse\_array_ (`ssa`), and _HDF5Array_ (`hdf5a`) representation of these data.
 
 ```{r, load-data}
+# Load the example data in DSArray representation
 dsa
+# Create the array representation
+a <- as(dsa, "array")
+# Create the simple_sparse_array representation
+library(slam)
+ssa <- as.simple_sparse_array(a)
+# Create the HDF5Array reprsentation
+library(HDF5Array)
+hdf5a <- writeHDF5Dataset(a, file = paste0(tempdir(), "hdf5a"), name = "hdf5a")
+# NOTE: We need to wrap the result in a HDF5Array object (see ?HDF5Array for 
+#       details)
+hdf5a <- HDF5Array(hdf5a)
+```
+
+While these data are extracted from real biological experiments, it is not necessary to understand the details to follow the vignette. Briefly, `dsa` contains counts of patterns of DNA methylation at 1,000,000 randomly sampled features (rows) from 17 samples (columns). For each feature and sample, the number of occurences of each of the $2^4 = 16$ observable patterns of DNA methylation is recorded (slices). Hence, the dimensions of `dsa` are $1000000 \times 17 \times 16$.
+
+```{r, dim}
+dim(dsa)
+dim(a)
+dim(ssa)
+dim(hdf5a)
+```
+
+Importantly, these data are very sparse. Although at least one sample has at least one observation for every feature, the majority of samples have no observations for the majority of features (these are recorded as a slice of `NA`s). Furthermore, there are many features and samples with identical (_duplicated_) counts, hence these data are perfectly suited to storing as a _DSArray_.
+
+```{r, dsa-summary}
+# TODO: Write a summary,DSArray-method; might be interesting to know percentage 
+#       NA for each sample and summary() of non-NA values per sample/slice
 ```
 
 # Memory
+
+We can compute the size of each object in memory using `pryr::object_size()` from the `r CRANpkg("pryr")` package:
+
+```{r, object-sizes}
+pryr::object_size(dsa)
+pryr::object_size(a)
+pryr::object_size(ssa)
+pryr::object_size(hdf5a)
+```
+
+Unsurprisingly, the _HDF5Array_ has a very small size in memory since the data are stored on disk[^hdf5_size]. The _DSArray_ representation is very efficient, only `r as.numeric(round(100 * pryr::object_size(dsa) / pryr::object_size(a), 0))`% the size of the _array_ representation. As hinted aboce, the _simple\_sparse\_array_ is not suitable for these data because it must record `NA` values as non-zero elements, thereby making these data very dense indeed. In fact, the _simple\_sparse\_array_ representation is `r as.numeric(round(100 * pryr::object_size(ssa) / pryr::object_size(a), 0))`% the size of the _array_ representation. For this reason we do not consider _simple\_sparse\_array_ in what follows[^ssa].
+
+[^hdf5_size]: The HDF file containing the data is `r round(file.size(hdf5a@seed@file) / 1024^2, 1)` MB on disk
+
+[^ssa]: It is worth noting, however, that if `NA` and `0` counts can be considered equivalent, then the _simple\_sparse\_array_ representation is very efficient (73.4 MB in memory).
+
+```{r, cleanup, echo = FALSE}
+# Not using this object in what follows
+rm(ssa)
+```
+
+The above example demonstrates the efficiency of a _DSArray_ for a specific dataset. We next demonstrate the memory efficiency of a _DSArray_ relative to _array_ over a range of `nrow`, `ncol`, `nslice`, and the proportion of unique slices (`pus`).
+
+__UP TO HERE:__ Make this plot and include a reference point for the `dsa` dataset
+
+```{r, memory-comparison-plot}
+nrow <- 100 ^ seq(1, 5, 1)
+ncol <- c(1, 5, 10, 15, 20, 30)
+nslice <- 2 ^ seq(0, 5, 1)
+pus <- seq(0, 0.9, 0.1)
+
+grid <- expand.grid(nrow = nrow, ncol = ncol, nslice = nslice, pus = pus)
+grid$size_of_dsarray <- apply(grid, 1, function(x) {
+  DSArray:::.sizeDSArray(nrow = x[1], ncol = x[2], nslice = x[3], pus = x[4], 
+                         so = 4)
+})
+grid$size_of_array <- apply(grid, 1, function(x) {
+  DSArray:::.sizeBaseArray(nrow = x[1], ncol = x[2], nslice = x[3], pus = x[4], 
+                           so = 4)
+})
+grid$size_ratio <- apply(grid, 1, function(x) {
+  DSArray:::.sizeRatio(nslice = x[3], pus = x[4], so = 4)
+})
+
+library(ggplot2)
+ggplot(data = grid, aes(x = 1 - pus, y = size_of_dsarray, 
+                        col = factor(nslice))) +
+  geom_line() +
+  facet_grid(ncol ~ nrow,
+             labeller = labeller(ncol = label_both, nrow = label_both)) + 
+  scale_y_log10() + 
+  annotation_logticks(sides = "l")
+
+# TODO: Normalise above plot by size of worst case
+
+ggplot(data = grid, aes(x = 1 - pus, y = size_of_array, col = factor(nslice))) +
+  geom_line() +
+  facet_grid(ncol ~ nrow,
+             labeller = labeller(ncol = label_both, nrow = label_both)) + 
+  scale_y_log10() +
+  annotation_logticks(sides = "l")
+
+ggplot(data = grid, aes(x = 1 - pus, y = size_ratio, col = factor(nslice))) +
+  geom_line() +
+  facet_grid(ncol ~ nrow,
+             labeller = labeller(ncol = label_both, nrow = label_both)) + 
+  geom_hline(yintercept = 1)
+
+ggplot(data = grid, aes(x = 1 - pus, y = size_ratio, col = factor(nslice))) +
+  geom_line() +
+  facet_grid(ncol ~ nrow,
+             labeller = labeller(ncol = label_both, nrow = label_both)) + 
+  scale_y_log10() +
+  annotation_logticks(sides = "l")
+
+# NOTE: Slope is constant and independent of nrow and ncol in above plot, so 
+#       just focus on one subplot
+ggplot(data = subset(grid, nrow == 10000 & ncol == 30), 
+       aes(x = 1 - pus, y = size_ratio, col = factor(nslice))) +
+  geom_line() +
+  geom_hline(yintercept = 1)
+
+ggplot(data = subset(grid, nrow == 10000 & ncol == 30), 
+       aes(x = 1 - pus, y = size_ratio, col = factor(nslice))) +
+  geom_line() +
+  geom_hline(yintercept = 1) +
+  scale_y_continuous(trans = "log2") +
+  annotation_logticks(sides = "l")
+
+# TODO: You 'break even' when (1 - pus) = 1 / nslice; figure the general 
+#       formula for when you make a x% saving
+```
 
 <!-- TODO: Uncomment once implemented
 ### Memory usage
@@ -59,8 +188,16 @@ dsa
 
 # Speed
 
+Here are some simple speed benchmarks[^benchmarks] of commonly used operations:
+
+[^benchmark]: We use the `r CRANpkg("microbenchmark")` package to perform the timing benchmarks
+
+```{r, speed}
+library(microbenchmark)
+microbenchmark(sum(dsa, na.rm = TRUE), sum(a, na.rm = TRUE), times = 10)
+```
+
 # Profvis
 
 # Misc. TODOs
-
 
