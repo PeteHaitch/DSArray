@@ -46,7 +46,6 @@ xx <- DSArray(x)
 # Run tests on example dataset (**slow**)
 if (identical(Sys.getenv("TEST_WITH_EXAMPLE_DATA"), "true")) {
   warning("Using example dataset for tests - this is **slow**", call. = FALSE)
-  load(system.file("data", "Lister-DSArray.RData", package = "DSArray"))
   xx <- zz <- dsa
   x <- z <- as(xx, "array")
   dn <- list(100 + seq_len(nrow(xx)),

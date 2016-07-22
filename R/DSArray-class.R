@@ -6,6 +6,9 @@
 ### DSArray class
 ###
 
+# TODO: Check documented savings from using DSArray() match those given by
+#       .sizeRatio()
+
 # NOTE: The maximum nrow is .Machine$integer.max. While it's fairly simple to
 #       support objects with more rows, I want to ensure that whenever possible
 #       the 'key' slot has storage.mode() 'integer' to save space. If I allow
@@ -133,7 +136,7 @@ setClass("DSArray",
     return(paste0("'val' slot of a ", class(x), " must be a matrix"))
   }
   if (is.complex(slot(x, "val"))) {
-    return("'complex' arrays not currently supported")
+    return("complex numbers not currently supported")
   }
 }
 
@@ -214,7 +217,7 @@ setValidity2("DSArray", .valid.DSArray)
 setMethod("DSArray", "matrix",
           function(x, dimnames = NULL) {
             if (is.complex(x)) {
-              stop("'complex' arrays not yet supported")
+              stop("complex numbers not currently supported")
             }
             dsa <- .sparsify(x)
             if (is.null(dimnames)) {
@@ -247,7 +250,7 @@ setMethod("DSArray", "list",
             stopifnot(all(cl == "matrix"))
             is_complex <- vapply(x, is.complex, logical(1L))
             if (isTRUE(any(is_complex))) {
-              stop("'complex' arrays not yet supported")
+              stop("complex numbers not currently supported")
             }
             d <- lapply(x, dim)
             ok_dim <- vapply(d, function(d, d1) {
@@ -291,7 +294,7 @@ setMethod("DSArray", "list",
 setMethod("DSArray", "array",
           function(x, MARGIN = 2L, dimnames = NULL) {
             if (is.complex(x)) {
-              stop("'complex' arrays not yet supported")
+              stop("complex numbers not currently supported")
             }
             d <- dim(x)
             n <- length(d)
@@ -525,7 +528,9 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
         j_numeric <- match(j, new_key_dimnames[[2L]])
         new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j_numeric]
       } else {
-        new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
+        if (!is.null(new_key_dimnames[[2L]])) {
+          new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
+        }
       }
     } else if (!missing(i) && missing(j)) {
       ii <- slot(x, "key")[i, , drop = FALSE]
@@ -546,13 +551,17 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
         new_key_dimnames[[1L]] <-
           new_key_dimnames[[1L]][match(i, new_key_dimnames[[1L]])]
       } else {
-        new_key_dimnames[[1L]] <- new_key_dimnames[[1L]][i]
+        if (!is.null(new_key_dimnames[[1L]])) {
+          new_key_dimnames[[1L]] <- new_key_dimnames[[1L]][i]
+        }
       }
       if (is.character(j)) {
         j_numeric <- match(j, new_key_dimnames[[2L]])
         new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j_numeric]
       } else {
-        new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
+        if (!is.null(new_key_dimnames[[2L]])) {
+          new_key_dimnames[[2L]] <- new_key_dimnames[[2L]][j]
+        }
       }
     }
     # NOTE: By working with only the unique rows of ii we avoid some
@@ -741,7 +750,7 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
 #'
 #' @rdname DSArray
 #' @importFrom methods setMethod
-#' @importMethodsFrom SummarizedExperiment arbind
+#' @importFrom IRanges arbind
 #'
 #' @export
 setMethod("arbind", "DSArray",
@@ -756,7 +765,7 @@ setMethod("arbind", "DSArray",
 #'
 #' @rdname DSArray
 #' @importFrom methods setMethod
-#' @importMethodsFrom SummarizedExperiment acbind
+#' @importFrom IRanges acbind
 #'
 #' @export
 setMethod("acbind", "DSArray",

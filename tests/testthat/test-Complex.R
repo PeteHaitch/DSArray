@@ -15,9 +15,9 @@ test_that("data.table supports complex keys", {
 
 test_that("DSArray constructor errors on complex input", {
   xi <- x + 3i
-  expect_error(DSArray(xi), "'complex' arrays not yet supported")
+  expect_error(DSArray(xi), "complex numbers not currently supported")
   expect_error(DSArray(as.matrix(xi[, 1, ])),
-               "'complex' arrays not yet supported")
+               "complex numbers not currently supported")
   expect_error(DSArray(list(as.matrix(xi[, 1, ]), as.matrix(xi[, 2, ]))),
-               "'complex' arrays not yet supported")
+               "complex numbers not currently supported")
 })

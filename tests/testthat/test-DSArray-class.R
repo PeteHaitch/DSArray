@@ -43,7 +43,7 @@ test_that(".valid.DSArray.val and validObject work", {
   expect_error(validObject(yy),
                "invalid object for slot \"val\" in class \"DSArray\"")
   yy <- xx
-  msg <- "'complex' arrays not currently supported"
+  msg <- "complex numbers not currently supported"
   slot(yy, "val", check = FALSE) <- slot(yy, "val") + 1i
   expect_output(print(.valid.DSArray.val(yy)), msg)
   expect_error(validObject(yy), msg)
@@ -91,7 +91,7 @@ test_that("DSArray,list-method works", {
 
 test_that("DSArray,array-method works", {
   expect_error(DSArray(x + 1i),
-               "'complex' arrays not yet supported")
+               "complex numbers not currently supported")
   expect_error(DSArray(array(1:16, dim = rep(2, 4))),
                "array must have 3 dimensions")
   expect_error(DSArray(x, MARGIN = c(1, 2)), "incorrect value for 'MARGIN'")

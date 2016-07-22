@@ -3,7 +3,7 @@
 \docType{class}
 \name{DSArray-class}
 \alias{DSArray-class}
-\alias{[,DSArray,ANY,ANY-method}
+\alias{[,DSArray,ANY,ANY,ANY-method}
 \alias{[<-,DSArray,ANY,ANY,DSArray-method}
 \alias{acbind,DSArray-method}
 \alias{arbind,DSArray-method}
@@ -38,7 +38,7 @@
 
 \S4method{slicenames}{DSArray,character}(x) <- value
 
-\S4method{[}{DSArray,ANY,ANY}(x, i, j, k, ..., drop = FALSE)
+\S4method{[}{DSArray,ANY,ANY,ANY}(x, i, j, k, ..., drop = FALSE)
 
 \S4method{[}{DSArray,ANY,ANY,DSArray}(x, i, j, k, ...) <- value
 
