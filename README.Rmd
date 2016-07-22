@@ -113,7 +113,7 @@ The vignette can be viewed at [http://bioconductor.org/packages/release/bioc/vig
 vignette("DSArrayIntroduction", package = "DSArray")
 ```
 
-## Have a feature request, need help or want to get involved?
+## Have a feature request, need help, or want to get involved?
 
 While __DSArray__ implements many methods that allow _DSArray_ objects to be used as drop-in replacements for _array_ objects, the coverage is not 100% complete. I am adding these as needed, so if something you require is missing then please get in touch by filing a feature request at [https://github.com/PeteHaitch/DSArray/issues](https://github.com/PeteHaitch/DSArray/issues).
 

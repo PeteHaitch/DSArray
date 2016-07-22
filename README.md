@@ -29,6 +29,9 @@ This package serves a niche purpose. However, since I've found it useful, I'm ma
 
 Suppose you have data on a set of `n` samples where each sample's data can be represented as a matrix (`x1`, ..., `xn`) where `dim(x1) = ... = dim(xn) = c(nrow, ncol)`. We can combine these matrices along a given dimension to form a 3-dimensional array, `x`. **DSArray** is designed for the special case where there are many duplicate *slices* of `x`. Continuing our example, if each of the `x1`, ..., `xn` have duplicate rows and we combine `x1`, ..., `xn` to form `x` such that `x[, j, ]` represents `xj`, then for this special case we can efficiently represent the data by storing only the unique rows of the `x1`, ..., `xn` and an associated index. A picture will hopefully help make this clearer:
 
+    #> Warning: multiple methods tables found for 'arbind'
+    #> Warning: multiple methods tables found for 'acbind'
+
 ![](README-draw-DSArray-1.png)
 
 In this example we have `n = 3` matrices, each shown as a slice of `x` (`x[, 1, ]`, `x[, 2, ]`, `x[, 3, ]`) with `nrow = 20` and `ncol = 8`, where the colour of the row identifies identical rows. Note that the same row may be found multiple times within a sample and may also be common to multiple samples. We can construct the *DSArray* representation of `x` by calling `DSArray(x)`. The *DSArray* representation has a *key* and a *val*, much like an associative array, map, or dictionary. The j-th column of the *key* is the key for the j-th sample (note the colour ordering of each sample). The *val* contains all **unique** rows found in the `n` samples.
@@ -75,8 +78,8 @@ The package also includes a comprehensive vignette that expands upon the above q
 The first point was the motivation for the development of __DSArray__. The __SummarizedExperiment__ package defines an important base class in the Bioconductor project. I needed an efficient way to store DNA methylation patterns, a particular kind of genomic data, that was compatible with the __SummarizedExperiment__ package.
 
 The vignette can be viewed at [http://bioconductor.org/packages/release/bioc/vignettes/DSArray/inst/doc/DSArrayIntroduction.html](http://bioconductor.org/packages/release/bioc/vignettes/DSArray/inst/doc/DSArrayIntroduction.html) or accessed from R using: -->
-Have a feature request, need help or want to get involved?
-----------------------------------------------------------
+Have a feature request, need help, or want to get involved?
+-----------------------------------------------------------
 
 While **DSArray** implements many methods that allow *DSArray* objects to be used as drop-in replacements for *array* objects, the coverage is not 100% complete. I am adding these as needed, so if something you require is missing then please get in touch by filing a feature request at <https://github.com/PeteHaitch/DSArray/issues>.
 
