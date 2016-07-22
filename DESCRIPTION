@@ -17,14 +17,16 @@ Imports:
     data.table,
     methods,
     S4Vectors,
-    SummarizedExperiment (>= 1.3.0),
+    IRanges (>= 2.7.2),
     RColorBrewer
 Suggests:
     abind,
     BiocStyle,
     knitr,
+    microbenchmark,
     pryr,
     rmarkdown,
-    testthat,
+    SummarizedExperiment,
+    testthat
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
