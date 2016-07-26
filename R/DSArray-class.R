@@ -42,6 +42,11 @@
 #' of \code{x} behave from the user's perspective just as if it were in its
 #' "dense" form.
 #'
+#' @slot key An integer matrix where the \eqn{(i, j)}-entry of the \code{key}
+#' corresponds to the \eqn{i^{th}} row and \eqn{j^{th}} column of the original
+#' 3-dimensional "dense" array.
+#' @slot val A matrix storing the unique slices of the input array.
+#'
 #' @section Design and Internals:
 #' Let \code{x} be a 3-dimensional array and let \code{dsa} be its DSArray
 #' representation. A duplicate \code{(i,j)}-slice of \code{x} is one such that
@@ -92,10 +97,11 @@
 #' would like to have, then please file a feature request at
 #' \url{https://github.com/PeteHaitch/DSArray/issues}.
 #'
-#' @slot key An integer matrix where the \eqn{(i, j)}-entry of the \code{key}
-#' corresponds to the \eqn{i^{th}} row and \eqn{j^{th}} column of the original
-#' 3-dimensional "dense" array.
-#' @slot val A matrix storing the unique slices of the input array.
+#' @section Other methods:
+#' \code{show(x)}: By default the \code{show} method only displays the class of
+#' the object and its dimensions. However, if the \pkg{HDF5Array} package is
+#' installed, then the \code{show} method also displays the first and last few
+#' rows of the object.
 #'
 #' @seealso \code{\link{DSArray}}, \code{\link{DSArray-utils}}
 #' @author Peter Hickey
@@ -498,6 +504,13 @@ setReplaceMethod("slicenames", c("DSArray", "character"),
   if (drop) {
     warning("'drop' ignored '[,", class(x), ",ANY-method'")
   }
+  # NOTE: Special case for use in HDF5Array::type(), which is called (deep
+  #       down) as part of show,DSArray-method
+  if ((!missing(i) && length(i) == 0) ||
+      (!missing(j) && length(j) == 0) ||
+      (!missing(k) && length(k) == 0)) {
+    return(vector(typeof(slot(x, "val")), 0L))
+  }
   if (!missing(i) && is.logical(i)) {
     i <- which(rep_len(i, length.out = nrow(x)))
   }
@@ -678,34 +691,37 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
 
 ### arbind/acbind
 
-.bind_DSArray <- function(lst, along) {
-  if (length(lst) == 0L) {
+.bind_DSArray <- function(..., along) {
+  objects <- list(...)
+  if (length(objects) == 0L) {
     return(DSArray())
   }
-  ok_nslice <- vapply(lst, function(dsarray, ns1) {
+  ok_nslice <- vapply(objects, function(dsarray, ns1) {
     isTRUE(nslice(dsarray) == ns1)
-  }, logical(1L), ns1 = nslice(lst[[1L]]))
+  }, logical(1L), ns1 = nslice(objects[[1L]]))
   if (!all(ok_nslice)) {
-    stop("Cannot arbind/acbind ", class(lst[[1L]]), " objects with ",
+    stop("Cannot arbind/acbind ", class(objects[[1L]]), " objects with ",
          "different nslice")
   }
   if (along == 1L) {
-    ok_ncol <- vapply(lst, function(dsarray, nc1) {
+    ok_ncol <- vapply(objects, function(dsarray, nc1) {
       isTRUE(ncol(dsarray) == nc1)
-    }, logical(1L), nc1 = ncol(lst[[1L]]))
+    }, logical(1L), nc1 = ncol(objects[[1L]]))
     if (!all(ok_ncol)) {
-      stop("Cannot arbind ", class(lst[[1L]]), " objects with different ncol")
+      stop("Cannot arbind ", class(objects[[1L]]),
+           " objects with different ncol")
 
     }
   } else if (along == 2L) {
-    ok_nrow <- vapply(lst, function(dsarray, nr1) {
+    ok_nrow <- vapply(objects, function(dsarray, nr1) {
       isTRUE(nrow(dsarray) == nr1)
-    }, logical(1L), nr1 = nrow(lst[[1L]]))
+    }, logical(1L), nr1 = nrow(objects[[1L]]))
     if (!all(ok_nrow)) {
-      stop("Cannot acbind ", class(lst[[1L]]), " objects with different nrow")
+      stop("Cannot acbind ", class(objects[[1L]]),
+           " objects with different nrow")
     }
   }
-  keys_list <- lapply(lst, slot, "key")
+  keys_list <- lapply(objects, slot, "key")
   max_idx <- lapply(keys_list, max)
   increment_list <- cumsum(c(0, max_idx[-length(max_idx)]))
   keys_list <- Map(function(key, increment) {
@@ -717,7 +733,7 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
     new_key <- do.call("cbind", keys_list)
   }
   new_key_dim <- dim(new_key)
-  new_val <- do.call("rbind", lapply(lst, slot, "val"))
+  new_val <- do.call("rbind", lapply(objects, slot, "val"))
   # NOTE: new("DSArray", key = new_key, val = new_val) works
   #       (in the sense that the densified matrix is correct),
   #       however, it's not sparse; need to sparsify val and update
@@ -729,16 +745,28 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
   dsarray <- new("DSArray", key = new_key, val = new_val)
   # Update dimnames
   if (along ==  1L) {
-    rn <- do.call("c", lapply(lst, rownames))
-    cn <- colnames(lst[[1L]])
+    rn <- do.call("c", lapply(objects, rownames))
+    cn <- colnames(objects[[1L]])
   } else if (along == 2L) {
-    rn <- rownames(lst[[1L]])
-    cn <- do.call("c", lapply(lst, colnames))
+    rn <- rownames(objects[[1L]])
+    cn <- do.call("c", lapply(objects, colnames))
   }
   rownames(dsarray) <- rn
   colnames(dsarray) <- cn
   dsarray
 }
+
+#' @rdname DSArray-class
+#' @importFrom methods setMethod
+#'
+#' @inheritParams arbind,DSArray-method
+#'
+#' @rdname DSArray
+#' @importFrom methods setMethod
+#' @importFrom IRanges acbind
+#'
+#' @export
+setMethod("acbind", "DSArray", function(...) .bind_DSArray(..., along = 2L))
 
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
@@ -753,25 +781,7 @@ setReplaceMethod("[", c("DSArray", "ANY", "ANY", "DSArray"),
 #' @importFrom IRanges arbind
 #'
 #' @export
-setMethod("arbind", "DSArray",
-          function(...) {
-            .bind_DSArray(unname(list(...)), along = 1)
-          })
-
-#' @rdname DSArray-class
-#' @importFrom methods setMethod
-#'
-#' @inheritParams arbind,DSArray-method
-#'
-#' @rdname DSArray
-#' @importFrom methods setMethod
-#' @importFrom IRanges acbind
-#'
-#' @export
-setMethod("acbind", "DSArray",
-          function(...) {
-            .bind_DSArray(unname(list(...)), along = 2)
-          })
+setMethod("arbind", "DSArray", function(...) .bind_DSArray(..., along = 1L))
 
 ### combine
 ### TODO (longterm): May be required for MethylationTuples
@@ -815,3 +825,4 @@ setMethod("show", "DSArray", # nocov start
           }
 ) # nocov end
 
+# TODO: head() and tail()

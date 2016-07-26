@@ -3,7 +3,7 @@
 \docType{class}
 \name{DSArray-class}
 \alias{DSArray-class}
-\alias{[,DSArray,ANY,ANY,ANY-method}
+\alias{[,DSArray-method}
 \alias{[<-,DSArray,ANY,ANY,DSArray-method}
 \alias{acbind,DSArray-method}
 \alias{arbind,DSArray-method}
@@ -38,13 +38,13 @@
 
 \S4method{slicenames}{DSArray,character}(x) <- value
 
-\S4method{[}{DSArray,ANY,ANY,ANY}(x, i, j, k, ..., drop = FALSE)
+\S4method{[}{DSArray}(x, i, j, k, ..., drop = FALSE)
 
 \S4method{[}{DSArray,ANY,ANY,DSArray}(x, i, j, k, ...) <- value
 
-\S4method{arbind}{DSArray}(...)
-
 \S4method{acbind}{DSArray}(...)
+
+\S4method{arbind}{DSArray}(...)
 
 \S4method{densify}{DSArray}(x)
 
@@ -157,6 +157,14 @@ objects are currently implemented for DSArray objects (e.g., \code{mean()}).
 I plan to implement these as needed, so if you come across one that you
 would like to have, then please file a feature request at
 \url{https://github.com/PeteHaitch/DSArray/issues}.
+}
+
+\section{Other methods}{
+
+\code{show(x)}: By default the \code{show} method only displays the class of
+the object and its dimensions. However, if the \pkg{HDF5Array} package is
+installed, then the \code{show} method also displays the first and last few
+rows of the object.
 }
 \author{
 Peter Hickey
