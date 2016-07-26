@@ -15,9 +15,9 @@ Depends:
     R (>= 3.3.0)
 Imports:
     data.table,
+    IRanges (>= 2.7.2),
     methods,
     S4Vectors,
-    IRanges (>= 2.7.2),
     RColorBrewer
 Suggests:
     abind,

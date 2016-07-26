@@ -797,21 +797,21 @@ setAs("DSArray", "array",
       }
 )
 
-# TODO: as.array S3/S4 combo for DSArray objects
+#' @export
+as.array.DSArray <- function(x, ...) {
+  densify(x)
+}
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### show
 ###
-
-# TODO: See show,HDF5Array-method, which gives useful information and shows a
-#       head/tail of the data
 
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
 #' @export
 setMethod("show", "DSArray", # nocov start
           function(object) {
-            cat("class:", class(object), "\n")
-            cat("dim:", dim(object), "\n")
+            .show_DSArray(object)
           }
 ) # nocov end
+
