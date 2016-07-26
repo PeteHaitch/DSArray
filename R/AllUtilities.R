@@ -322,7 +322,7 @@ setMethod(".sparsify", "data.frame",
 #' @inheritParams .sizeDSArray
 #' @return Total (approximate) size in bytes (B)
 #' @keywords internal
-.sizeBaseArray <- function(nrow, ncol, nslice, pus, so) {
+.sizeBaseArray <- function(nrow, ncol, nslice, so) {
   nrow * ncol * nslice * so
 }
 
