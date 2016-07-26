@@ -828,3 +828,7 @@ test_that("coercion works as expected", {
   expect_identical(densify(xx), x)
   expect_identical(as(xx, "array"), x)
 })
+
+# TODO: Test dsa[0, 0, 0] gives same result as a[0, 0, 0],
+#       dsa[1, 0, 1] as a[1, 0, 1], etc. provided that in doing so I don't
+#       break the show,DSArray-method

@@ -44,6 +44,8 @@ test_that("DSArray,Summary-method returns equal result to array-based equivalent
       expect_equal(op(dd), op(aa))
     }, dd = d, aa = a, na.rm = na.rm)
   })
+  expect_identical(sum(dsa, na.rm = TRUE), sum(as.array(dsa), na.rm = TRUE))
+  expect_identical(sum(dsa, na.rm = FALSE), sum(as.array(dsa), na.rm = FALSE))
 })
 
 # TODO: Special challenges for sum() and prod() since these implementations are
