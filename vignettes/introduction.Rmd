@@ -287,17 +287,17 @@ An efficient representation of sparse 3-dimensional arrays within a _SummarizedE
 
 Here is a simple example showing that a _DSArray_ works within a _SummarizedExperiment_.
 
-```{r, SummarizedExperiment}
+```{r, SummarizedExperiment, message = FALSE}
 library(SummarizedExperiment)
 se <- SummarizedExperiment(list(counts = a_dsa))
-rbind(se, se)
-cbind(se, se)
 assays(se)
 assay(se)
 sum(assay(se))
 se[, 2]
 se[c(1, 3), ]
 dimnames(se)
+rbind(se, se)
+cbind(se, se)
 ```
 
 ## Future work
