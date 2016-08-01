@@ -14,24 +14,24 @@ setMethod("Summary", "DSArray",
                    all = , any = , min = , max = , range =
                      callGeneric(slot(x, "val"), ..., na.rm = na.rm),
                    sum = {
-                     idx <- unique(as.vector(slot(x, "key")))
+                     l <- tabulate(slot(x, "key"))
+                     r <- slot(x, "val")
                      tryCatch(
-                       sum(tabulate(slot(x, "key")) %*%
-                             slot(x, "val")[idx, ],
-                           ..., na.rm = na.rm),
+                       # TODO: Not using sum(l %*%r) because r may contain NA
+                       #       elements. Could replace NA with 0 and use matrix
+                       #       multiplication; benchmark
+                       sum(l * r, ..., na.rm = na.rm),
                        error = function(x) {
-                         storage.mode(slot(x, "val")) <- "double"
-                         sum(tabulate(slot(x, "key")) %*%
-                               slot(x, "val")[idx, ],
-                             ..., na.rm = na.rm)
+                         storage.mode(l) <- "double"
+                         sum(l * r, ..., na.rm = na.rm)
                        })
                    },
+                   # TODO: Is there really a need for `idx` in prod() (turns
+                   #       out there isn't for sum())?
                    prod = {
-                     idx <- unique(as.vector(slot(x, "key")))
-                     # NOTE: The min() is for when nrow(x) == 1
-                     prod(slot(x, "val")[idx, ] ^
-                            rep(tabulate(slot(x, "key")), min(1L, ncol(x))),
-                          ..., na.rm = na.rm)
+                     l <- tabulate(slot(x, "key"))
+                     r <- slot(x, "val")
+                     prod(r ^ l, min(1L, ncol(x)), ..., na.rm = na.rm)
                    })
           }
 )

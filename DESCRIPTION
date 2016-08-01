@@ -27,6 +27,7 @@ Suggests:
     pryr,
     rmarkdown,
     SummarizedExperiment,
-    testthat
+    testthat,
+    HDF5Array
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1

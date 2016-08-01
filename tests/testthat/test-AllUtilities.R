@@ -89,7 +89,7 @@ test_that("Guessing the size of array and DSArray is (approximately) correct", {
   sl <- nslice(xx)
   pus <- nrow(xx@val) / (nrow(x) * ncol(x))
   so <- 4L
-  expect_equal(.sizeBaseArray(nr, nc, sl, pus, so),
+  expect_equal(.sizeBaseArray(nr, nc, sl, so),
                as.numeric(object.size(x)),
                tolerance = 5e-1)
   expect_equal(.sizeDSArray(nr, nc, sl, pus, so),

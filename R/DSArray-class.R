@@ -818,6 +818,7 @@ as.array.DSArray <- function(x, ...) {
 
 #' @rdname DSArray-class
 #' @importFrom methods setMethod
+#' @importMethodsFrom methods show
 #' @export
 setMethod("show", "DSArray", # nocov start
           function(object) {
