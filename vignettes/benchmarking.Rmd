@@ -65,6 +65,7 @@ library(HDF5Array)
 hdf5a <- writeHDF5Dataset(a, file = paste0(tempdir(), "hdf5a"), name = "hdf5a")
 # NOTE: We need to wrap the result in a HDF5Array object (see ?HDF5Array for 
 #       details)
+# TODO: Is it okay to write a .h5 during tests?      
 hdf5a <- HDF5Array(hdf5a)
 ```
 
@@ -187,19 +188,104 @@ ggplot(data = subset(grid, nrow == 10000 & ncol == 30),
 
 # Speed
 
-Here are some simple speed benchmarks[^benchmarks] of commonly used operations:
+Here are some simple speed benchmarks[^benchmarks] of commonly used operations. 
+
+__TODO:__ Specs of my machine
 
 [^benchmark]: We use the `r CRANpkg("microbenchmark")` package to perform the timing benchmarks
 
-```{r, speed, message = FALSE}
+## Subsetting
+
+Note that subsetting a _HDF5Array_ appears to be super fast, but is not an apples-to-apples comparison with the other methods. In the __HDF5Array__ package, subsetting is a delayed operation that is not not realised until wrapped in a call to `as.array()` (to realise in memory) or `TODO()`  (to realise on disk as a new `.h5` file); see `?HDF5Array::DelayedArray` for further detail. Therefore, the fairer comparison is to the method that wraps the result in `as.array()`.
+
+```{r, subsetting-speed, message = FALSE}
 library(microbenchmark)
-microbenchmark(sum(dsa, na.rm = TRUE), 
-               sum(a, na.rm = TRUE), 
-               sum(hdf5a, na.rm = TRUE),
-               times = 10)
+set.seed(666)
+
+# TODO: Up this to 5 or 10 for the final rendering
+# TODO: Uncomment as.array() calls
+times <- 5
+
+# Subsetting by rows (unsorted index)
+i <- sample(nrow(dsa), nrow(dsa) / 10)
+microbenchmark(dsa[i, , ], 
+               a[i, , , drop = FALSE],
+               hdf5a[i, , ],
+               # as.array(hdf5a[i, , ]), 
+               times = times)
+
+# Subsetting by rows (sorted index)
+sorted_i <- sort(i)
+microbenchmark(dsa[sorted_i, , ], 
+               a[sorted_i, , , drop = FALSE],
+               hdf5a[sorted_i, , ],
+               # as.array(hdf5a[sorted_i, , ]), 
+               times = times)
+
+# Subsetting by columns (unsorted index)
+j <- sample(ncol(dsa), 8)
+microbenchmark(dsa[, j, ], 
+               a[, j, , drop = FALSE],
+               hdf5a[, j, ],
+               # as.array(hdf5a[, j, ]), 
+               times = times)
+
+# Subsetting by columns (sorted index)
+sorted_j <- sort(j)
+microbenchmark(dsa[, sorted_j, ], 
+               a[, sorted_j, , drop = FALSE],
+               hdf5a[, sorted_j, ],
+               # as.array(hdf5a[, sorted_j, ]), 
+               times = times)
+
+# Subsetting by slices (unsorted index)
+k <- sample(nslice(dsa), 4)
+microbenchmark(dsa[, , k], 
+               a[, , k, drop = FALSE],
+               hdf5a[, , k],
+               # as.array(hdf5a[, , k]), 
+               times = times)
+
+# Subsetting by slices (sorted index)
+sorted_k <- sort(k)
+microbenchmark(dsa[, , sorted_k], 
+               a[, , sorted_k, drop = FALSE],
+               hdf5a[, , sorted_k],
+               # as.array(hdf5a[, , sorted_k]), 
+               times = times)
+
+# Subsetting by rows and columns (unsorted indices)
+microbenchmark(dsa[i, j, ],
+               a[i, j, ],
+               hdf5a[i, j, ],
+               # as.array(hdf5a[i, j, ]),
+               times = times)
+
+# Subsetting by rows and columns (sorted indices)
+microbenchmark(dsa[sorted_i, sorted_j, ],
+               a[sorted_i, sorted_j, ],
+               hdf5a[sorted_i, sorted_j, ],
+               # as.array(hdf5a[sorted_i, sorted_j, ]),
+               times = times)
 ```
 
+__TODO:__ Summarise results
+
+## Summaries of data
+
+```{r, summary-speed}
+# Sum
+microbenchmark(sum(dsa, na.rm = TRUE), 
+               sum(a, na.rm = TRUE),
+               sum(hdf5a, na.rm = TRUE),
+               times = 5)
+```
+
+__TODO:__ More summaries
+
 # Profvis
+
+__TODO:__ Not really necessary for initial release
 
 # Misc. TODOs
 
